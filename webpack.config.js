@@ -8,7 +8,14 @@ module.exports = {
     library: 'cytoscape-stickynote',
     libraryTarget: 'umd',
   },
-  module: {},
+  module: {
+    rules: [
+      {
+        test: /\.txt$/i,
+        use: 'raw-loader',
+      },
+    ],
+  },
   devServer: {
     contentBase: path.join(__dirname, 'dist'),
     compress: true,
