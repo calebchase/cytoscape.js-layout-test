@@ -1,8 +1,8 @@
 fs = require('fs');
 
 let eventsCount = 5;
-let peopleCount = 50;
-let identifiersCount = 100;
+let peopleCount = 15;
+let identifiersCount = 60;
 let eles = [];
 
 // Takes in an array an randomly sorts the elements
