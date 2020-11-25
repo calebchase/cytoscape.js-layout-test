@@ -30,7 +30,7 @@ function getOtherParent(parentId, parentTotal, childOptions) {
     let edgeCount = randomNumInRange(childOptions.sharedRange[0], childOptions.sharedRange[1]);
     for (let i = 0; i < edgeCount; i++) {
       let newParent = Math.floor(Math.random() * parentTotal);
-      while (newParent == parentId && !newParents.includes(newParent)) {
+      while (newParent == parentId || newParents.includes(newParent)) {
         newParent = Math.floor(Math.random() * parentTotal);
       }
       newParents.push(newParent);
@@ -60,8 +60,6 @@ function createEdge(srcType, srcNum, destType, destNum, eles) {
 }
 
 function createEdges(srcType, srcArr, destType, destArr, eles) {
-  console.log(srcArr);
-  console.log(destArr);
   let srcLength = srcArr.length;
 
   for (let i = 0; i < srcLength; i++) {
@@ -72,12 +70,13 @@ function createEdges(srcType, srcArr, destType, destArr, eles) {
 function pushEdges(srcType, srcCount, destType, destOptions, eles) {
   let srcArr = [];
   let destArr = [];
+  let srcEdge = [];
+  let destEdge = [];
   let otherParents = [];
   let childId = 0;
 
   for (let i = 0; i < srcCount; i++) {
     let childNum = getChildNum(destOptions);
-    console.log(childNum);
     for (let j = 0; j < childNum; j++) {
       srcArr.push(i);
       destArr.push(childId);
@@ -85,8 +84,8 @@ function pushEdges(srcType, srcCount, destType, destOptions, eles) {
       let otherParents = getOtherParent(i, srcCount, destOptions);
       console.log(otherParents);
       for (let k = 0; k < otherParents.length; k++) {
-        srcArr.push(otherParents[k]);
-        destArr.push(childId);
+        srcEdge.push(otherParents[k]);
+        destEdge.push(childId);
       }
 
       childId++;
@@ -94,6 +93,7 @@ function pushEdges(srcType, srcCount, destType, destOptions, eles) {
   }
   pushNodes(destType, destArr.length, eles);
   createEdges(srcType, srcArr, destType, destArr, eles);
+  createEdges(srcType, srcEdge, destType, destEdge, eles);
   return childId - 1;
 }
 
