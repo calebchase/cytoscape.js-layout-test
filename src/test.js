@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }));
   cy.add(JSON.parse(nodeText));
 
-  nodeOffset(cy.elements('node[type = "events"]'), { x: 100, y: 100 }, 150);
-  nodeOffset(cy.elements('node[type = "people"]'), { x: 100, y: 300 }, 150);
-  nodeOffset(cy.elements('node[type = "identifiers"]'), { x: 100, y: 500 }, 150);
+  nodeOffset(cy.elements('node[type = "event"]'), { x: 100, y: 100 }, 150);
+  nodeOffset(cy.elements('node[type = "person"]'), { x: 100, y: 300 }, 150);
+  nodeOffset(cy.elements('node[type = "identifier"]'), { x: 100, y: 500 }, 150);
 });
