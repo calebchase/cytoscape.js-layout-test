@@ -17,6 +17,8 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
-    "cytoscape": "^3.17.0"
+    "cytoscape": "^3.17.0",
+    "cytoscape-euler": "^1.2.2",
+    "cytoscape-fcose": "^1.2.3"
   }
 }
