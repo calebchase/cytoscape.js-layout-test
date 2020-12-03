@@ -6,19 +6,19 @@ options = {
   },
   person: {
     rangePerNode: [3, 5],
-    sharedRange: [2, 3],
+    sharedRange: [1, 2],
     sharedPercent: 0.15,
   },
   identifier: {
     rangePerNode: [2, 3],
-    sharedRange: [2, 3],
+    sharedRange: [1, 2],
     sharedPercent: 0.1,
   },
 };
 
-function pushNode(node, eles) {
-  eles.push({ group: 'nodes', data: { id: `node:${node.type}:${node.i}`, type: node.type } });
-}
+// function pushNode(node, eles) {
+//   eles.push({ group: 'nodes', data: { id: `node:${node.type}:${node.i}`, type: node.type } });
+// }
 
 function randomNumInRange(start, end) {
   return Math.floor(Math.random() * (end + 1 - start) + start);
@@ -28,8 +28,10 @@ function getOtherParent(parentId, parentTotal, childOptions) {
   let newParents = [];
   if (Math.random() <= childOptions.sharedPercent) {
     let edgeCount = randomNumInRange(childOptions.sharedRange[0], childOptions.sharedRange[1]);
+
     for (let i = 0; i < edgeCount; i++) {
       let newParent = Math.floor(Math.random() * parentTotal);
+
       while (newParent == parentId || newParents.includes(newParent)) {
         newParent = Math.floor(Math.random() * parentTotal);
       }
@@ -82,19 +84,17 @@ function pushEdges(srcType, srcCount, destType, destOptions, eles) {
       destArr.push(childId);
 
       let otherParents = getOtherParent(i, srcCount, destOptions);
-      console.log(otherParents);
       for (let k = 0; k < otherParents.length; k++) {
         srcEdge.push(otherParents[k]);
         destEdge.push(childId);
       }
-
       childId++;
     }
   }
   pushNodes(destType, destArr.length, eles);
   createEdges(srcType, srcArr, destType, destArr, eles);
   createEdges(srcType, srcEdge, destType, destEdge, eles);
-  return childId - 1;
+  return childId;
 }
 
 function generateElements(options) {
