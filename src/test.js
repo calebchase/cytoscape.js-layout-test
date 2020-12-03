@@ -2,6 +2,12 @@ console.log('Hello, World!');
 
 import cytoscape from 'cytoscape';
 import nodeText from './node.txt';
+import fcose from 'cytoscape-fcose';
+import euler from 'cytoscape-euler';
+
+cytoscape.use(euler);
+cytoscape.use(fcose);
+
 import nodeOffset from './nodeOffset';
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -18,8 +24,8 @@ document.addEventListener('DOMContentLoaded', function () {
           content: '',
           'background-color': 'lightgrey',
           shape: 'round-rectangle',
-          width: 100,
-          height: 100,
+          width: 50,
+          height: 50,
         },
       },
       {
@@ -41,7 +47,45 @@ document.addEventListener('DOMContentLoaded', function () {
   }));
   cy.add(JSON.parse(nodeText));
 
-  nodeOffset(cy.elements('node[type = "event"]'), { x: 100, y: 100 }, 150);
-  nodeOffset(cy.elements('node[type = "person"]'), { x: 100, y: 400 }, 150);
-  nodeOffset(cy.elements('node[type = "identifier"]'), { x: 100, y: 700 }, 150);
+  //nodeOffset(cy.elements('node[type = "event"]'), { x: 100, y: 100 }, 150);
+  //nodeOffset(cy.elements('node[type = "person"]'), { x: 100, y: 400 }, 150);
+  //nodeOffset(cy.elements('node[type = "identifier"]'), { x: 100, y: 700 }, 150);
+  // var layout = cy.layout({
+  //   name: 'random',
+  //   animate: true,
+  //   animationDuration: 1000,
+  // });
+
+  // layout.run();
+
+  var f = cy.layout({
+    name: 'fcose',
+    quality: 'proof',
+    idealEdgeLength: 75,
+    nodeRepulsion: 500,
+    nodeSeparation: 200,
+    initialEnergyOnIncremental: 0.8,
+    //numIter: 1000,
+    edgeElasticity: 0.15,
+  });
+
+  var e = cy.layout({
+    name: 'euler',
+    springLength: (edge) => 150,
+    springCoeff: (edge) => 0.0008,
+  });
+
+  document.getElementById('f').onclick = () => {
+    f.run();
+  };
+
+  document.getElementById('e').onclick = () => {
+    e.run();
+  };
+
+  document.getElementById('b').onclick = () => {
+    nodeOffset(cy.elements('node[type = "event"]'), { x: 100, y: 100 }, 150);
+    nodeOffset(cy.elements('node[type = "person"]'), { x: 100, y: 400 }, 150);
+    nodeOffset(cy.elements('node[type = "identifier"]'), { x: 100, y: 700 }, 150);
+  };
 });
