@@ -12,7 +12,7 @@ options = {
   identifier: {
     rangePerNode: [2, 3],
     sharedRange: [1, 2],
-    sharedPercent: 0.1,
+    sharedPercent: 0.2,
   },
 };
 
