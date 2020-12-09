@@ -4,6 +4,7 @@ import cytoscape from 'cytoscape';
 import nodeText from './node.txt';
 import fcose from 'cytoscape-fcose';
 import euler from 'cytoscape-euler';
+import layoutA from './layoutA';
 
 cytoscape.use(euler);
 cytoscape.use(fcose);
@@ -61,8 +62,8 @@ document.addEventListener('DOMContentLoaded', function () {
   var f = cy.layout({
     name: 'fcose',
     quality: 'proof',
-    idealEdgeLength: 75,
-    nodeRepulsion: 500,
+    idealEdgeLength: 100,
+    nodeRepulsion: 1000,
     nodeSeparation: 200,
     initialEnergyOnIncremental: 0.8,
     //numIter: 1000,
@@ -84,8 +85,14 @@ document.addEventListener('DOMContentLoaded', function () {
   };
 
   document.getElementById('b').onclick = () => {
+    console.log('Running base layout');
     nodeOffset(cy.elements('node[type = "event"]'), { x: 100, y: 100 }, 150);
     nodeOffset(cy.elements('node[type = "person"]'), { x: 100, y: 400 }, 150);
     nodeOffset(cy.elements('node[type = "identifier"]'), { x: 100, y: 700 }, 150);
+  };
+
+  document.getElementById('a').onclick = () => {
+    console.log('Running layoutA');
+    layoutA(cy);
   };
 });
