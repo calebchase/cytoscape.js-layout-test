@@ -6,6 +6,12 @@ var options = {
   identifierOffSetY: 90,
 };
 
+function colorCode(cy) {
+  cy.style().selector('node[type = "event"]').style('background-color', 'darkred').update();
+  cy.style().selector('node[type = "person"]').style('background-color', 'darkgreen').update();
+  cy.style().selector('node[type = "identifier"]').style('background-color', 'darkblue').update();
+}
+
 function getChildren(parent, target) {
   let children;
 
@@ -34,6 +40,7 @@ export default function layoutA(cy) {
   let leftBounds = 0;
 
   resetData(cy);
+  colorCode(cy);
 
   for (let i = 0; i < eventNodes.length; i++) {
     eventNodes[i].position({
