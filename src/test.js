@@ -4,7 +4,7 @@ import cytoscape from 'cytoscape';
 import nodeText from './node.txt';
 import fcose from 'cytoscape-fcose';
 import euler from 'cytoscape-euler';
-import layoutA from './layoutA';
+import layoutB from './layoutB';
 
 cytoscape.use(euler);
 cytoscape.use(fcose);
@@ -91,8 +91,8 @@ document.addEventListener('DOMContentLoaded', function () {
     nodeOffset(cy.elements('node[type = "identifier"]'), { x: 100, y: 700 }, 150);
   };
 
-  document.getElementById('a').onclick = () => {
-    console.log('Running layoutA');
-    layoutA(cy);
+  document.getElementById('layout').onclick = () => {
+    console.log('Running layoutB');
+    layoutB(cy);
   };
 });
