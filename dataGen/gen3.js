@@ -5,7 +5,7 @@ options = {
     count: 5,
   },
   person: {
-    rangePerNode: [3, 5],
+    rangePerNode: [10, 15],
     sharedRange: [1, 2],
     sharedPercent: 0.15,
   },
