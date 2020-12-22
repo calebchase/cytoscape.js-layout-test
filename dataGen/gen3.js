@@ -2,12 +2,12 @@ fs = require('fs');
 
 options = {
   event: {
-    count: 5,
+    count: 10,
   },
   person: {
-    rangePerNode: [10, 15],
+    rangePerNode: [3, 10],
     sharedRange: [1, 2],
-    sharedPercent: 0.15,
+    sharedPercent: 0.4,
   },
   identifier: {
     rangePerNode: [2, 3],
