@@ -1,5 +1,5 @@
 let options = {
-  eventOffset: 100,
+  eventOffset: 150,
 };
 
 function colorCode(cy) {
@@ -14,18 +14,6 @@ function resetData(cy) {
     nodes[i].data('_used', 'false');
   }
 }
-
-// function getEdgesToOnlyChild(parent) {
-//   let childrenEdges = [];
-//   let childrenNodes = parent.connectedEdges().connectedNodes();
-
-//   for (let i = 0; i < childrenNodes.length; i++) {
-//     if (childrenNodes[i].connectedEdges().length == 1) {
-//       childrenEdges.push(childrenNodes[i].connectedEdges());
-//     }
-//   }
-//   setEdgesTaxi(childrenEdges);
-// }
 
 function setEdgesTaxi(edge) {
   edge.style({
@@ -110,7 +98,7 @@ function setEvents(cy, events, options, start) {
   for (let i = 0; i < events.length; i++) {
     events[i].position({
       x: start.x + options.eventOffset * xMult++,
-      y: start.y - options.eventOffset * offsetMult,
+      y: start.y + options.eventOffset * offsetMult,
     });
 
     if ((i + 1) % eventsDim == 0) {
@@ -128,7 +116,7 @@ function setIdentifiers(cy, identifiers, options, start) {
   for (let i = 0; i < identifiers.length; i++) {
     identifiers[i].position({
       x: start.x,
-      y: options.eventOffset * i + 100,
+      y: -(options.eventOffset * i) - 300,
     });
     identifiers[i].data('_used', 'true');
   }
@@ -148,8 +136,11 @@ export default function layoutB(cy) {
 
     //getEdgesToOnlyChild(parent);
 
+    prevMax = 150 + setEvents(cy, identifiers.unique, options, { x: prevMax, y: 0 });
     parent.position({ x: prevMax, y: 0 });
+
     setIdentifiers(cy, identifiers.shared.concat(events.shared), options, { x: prevMax, y: 0 });
-    prevMax = 200 + setEvents(cy, identifiers.unique.concat(events.unique), options, { x: prevMax, y: 0 });
+
+    prevMax = 200 + setEvents(cy, events.unique, options, { x: prevMax, y: 0 });
   }
 }
