@@ -12,6 +12,7 @@
   "devDependencies": {
     "prettier": "^2.1.2",
     "raw-loader": "^4.0.2",
+    "url-loader": "^4.1.1",
     "webpack": "^5.5.1",
     "webpack-cli": "^4.2.0",
     "webpack-dev-server": "^3.11.0"
@@ -19,6 +20,8 @@
   "dependencies": {
     "cytoscape": "^3.17.0",
     "cytoscape-euler": "^1.2.2",
-    "cytoscape-fcose": "^1.2.3"
+    "cytoscape-fcose": "^1.2.3",
+    "cytoscape-html-node": "^1.0.5",
+    "cytoscape-node-html-label": "^1.2.1"
   }
 }
