@@ -1,5 +1,14 @@
 fs = require('fs');
 
+let eventImages = ['eventA.png', 'eventB.png'];
+let personImages = ['personA.png', 'personB.png'];
+let idenImages = ['idenA.png', 'idenB.png', 'idenC.png'];
+
+function randomFromArray(arr) {
+  let index = Math.floor(Math.random() * arr.length);
+  return arr[index];
+}
+
 options = {
   event: {
     count: 10,
@@ -12,7 +21,7 @@ options = {
   identifier: {
     rangePerNode: [2, 3],
     sharedRange: [1, 2],
-    sharedPercent: 0.2,
+    sharedPercent: 0.5,
   },
 };
 
@@ -38,8 +47,25 @@ function getOtherParent(parentId, parentTotal, childOptions) {
 }
 
 function pushNodes(type, count, eles) {
+  let img;
+
   for (let i = 0; i < count; i++) {
-    eles.push({ group: 'nodes', data: { id: `node:${type}:${i}`, type: type } });
+    if (type == 'event') {
+      img = randomFromArray(eventImages);
+    } else if (type == 'person') {
+      img = randomFromArray(personImages);
+      console.log('hit');
+    } else if (type == 'identifier') {
+      img = randomFromArray(idenImages);
+    }
+    eles.push({
+      group: 'nodes',
+      data: {
+        id: `node:${type}:${i}`,
+        type: type,
+        image: `./images/${img}`,
+      },
+    });
   }
 }
 
