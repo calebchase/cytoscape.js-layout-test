@@ -6,6 +6,13 @@ import fcose from 'cytoscape-fcose';
 import euler from 'cytoscape-euler';
 import layoutB from './layoutB';
 
+import { register as htmlnode } from 'cytoscape-html-node';
+var nodeHtmlLabel = require('cytoscape-node-html-label');
+
+// register extensions
+cytoscape.use(htmlnode);
+nodeHtmlLabel(cytoscape);
+
 cytoscape.use(euler);
 cytoscape.use(fcose);
 
@@ -95,4 +102,57 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log('Running layoutB');
     layoutB(cy);
   };
+
+  const htmlnode = cy.htmlnode();
+
+  htmlnode.createHtmlNode(cy, {
+    events: {
+      query: "[type = 'event']",
+      //defaultColor: 'lightGrey',
+      //altColor: 'darkBlue',
+      template: [
+        {
+          zoomRange: [0.001, 100],
+          template: {
+            html: `<div id="htmlLabel:#{data.id}">
+                   <img src="#{data.image}" width="75">
+                 </div>`,
+            cssClass: 'htmlCard',
+          },
+        },
+      ],
+    },
+    persons: {
+      query: "[type = 'person']",
+      //defaultColor: 'lightGrey',
+      //altColor: 'darkBlue',
+      template: [
+        {
+          zoomRange: [0.001, 100],
+          template: {
+            html: `<div id="htmlLabel:#{data.id}">
+                   <img src="#{data.image}" width="75">
+                 </div>`,
+            cssClass: 'htmlCard',
+          },
+        },
+      ],
+    },
+    iden: {
+      query: "[type = 'identifier']",
+      //defaultColor: 'lightGrey',
+      //altColor: 'darkBlue',
+      template: [
+        {
+          zoomRange: [0.001, 100],
+          template: {
+            html: `<div id="htmlLabel:#{data.id}">
+                   <img src="#{data.image}" width="75">
+                 </div>`,
+            cssClass: 'htmlCard',
+          },
+        },
+      ],
+    },
+  });
 });

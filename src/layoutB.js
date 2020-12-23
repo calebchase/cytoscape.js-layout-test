@@ -125,7 +125,7 @@ function setIdentifiers(cy, identifiers, options, start) {
 export default function layoutB(cy) {
   let persons = getOrderedPersons(cy);
   let events, identifiers, parent;
-  colorCode(cy);
+  // colorCode(cy);
   resetData(cy);
   let prevMax = 0;
 
