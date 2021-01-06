@@ -27,6 +27,76 @@ function hasOneParent(node) {
   return node.connectedEdges().length == 1;
 }
 
+function hasTwoParents(node) {
+  return node.connectedEdges().length == 1;
+}
+
+function permutator(inputArr) {
+  var results = [];
+
+  function permute(arr, memo) {
+    var cur,
+      memo = memo || [];
+
+    for (var i = 0; i < arr.length; i++) {
+      cur = arr.splice(i, 1);
+      if (arr.length === 0) {
+        results.push(memo.concat(cur));
+      }
+      permute(arr.slice(), memo.concat(cur));
+      arr.splice(i, 0, cur[0]);
+    }
+
+    return results;
+  }
+
+  return permute(inputArr);
+}
+
+function getNumOfSharedNodes(nodeA, nodeB) {
+  let nodeAChildren = nodeA.connectedEdges().connectedNodes();
+  let nodeBChildren = nodeB.connectedEdges().connectedNodes();
+  return nodeAChildren.filter((value) => nodeBChildren.includes(value)).length;
+}
+
+function getPersonsBySharedNodes(cy) {
+  let persons = cy.elements('node[type = "person"]');
+  let personsIdArr = [];
+  let permArr = [];
+  let maxList = [];
+  let maxCount = -1;
+  let curCount;
+  let orderedPersons = {};
+
+  for (let i = 0; i < persons.length; i++) {
+    personsIdArr.push(persons[i].id());
+    orderedPersons[persons[i].id()] = {};
+
+    for (let j = 0; j < persons.length; j++) {
+      if (persons[i].id() != persons[j].id()) {
+        orderedPersons[persons[i].id()][persons[j].id()] = getNumOfSharedNodes(persons[i], persons[j]);
+      }
+    }
+  }
+
+  permArr = permutator(personsIdArr);
+  console.log(orderedPersons);
+
+  for (let i = 0; i < permArr.length; i++) {
+    curCount = 0;
+    for (let j = 0; j < permArr[i].length - 1; j++) {
+      curCount += orderedPersons[permArr[i][j]][permArr[i][j + 1]];
+    }
+    if (curCount > maxCount) {
+      maxCount = curCount;
+      maxList = permArr[i];
+    }
+  }
+  console.log(maxList);
+
+  return maxList;
+}
+
 function getOrderedPersons(cy) {
   let persons = cy.elements('node[type = "person"]');
   let insert = false;
@@ -64,6 +134,11 @@ function getEventsFromPerson(cy, personId) {
       events.unique.push(children[i]);
       setEdgesTaxi(children[i].connectedEdges());
     } else {
+      if (children[i].data('_taxiSet') != 'true') {
+        setEdgesTaxi(person.edgesWith(`node[id = "${children[i].id()}" ]`));
+        console.log(person.edgesWith(`node[id = "${children[i].id()}" ]`));
+        children[i].data('_taxiSet', 'true');
+      }
       events.shared.push(children[i]);
     }
   }
@@ -83,6 +158,12 @@ function getIdentifiersFromPerson(cy, personId) {
       identifiers.unique.push(children[i]);
       setEdgesTaxi(children[i].connectedEdges());
     } else {
+      if (children[i].data('_taxiSet') != 'true') {
+        setEdgesTaxi(person.edgesWith(`node[id = "${children[i].id()}" ]`));
+        console.log(person.edgesWith(`node[id = "${children[i].id()}" ]`));
+        children[i].data('_taxiSet', 'true');
+      }
+
       identifiers.shared.push(children[i]);
     }
   }
@@ -112,10 +193,19 @@ function setEvents(cy, events, options, start) {
   return xMax;
 }
 
-function setIdentifiers(cy, identifiers, options, start) {
+function setSharedIdentifiers(cy, identifiers, options, start) {
   for (let i = 0; i < identifiers.length; i++) {
     identifiers[i].position({
-      x: start.x,
+      x: start.x - options.eventOffset,
+      y: -(options.eventOffset * i) - 300,
+    });
+    identifiers[i].data('_used', 'true');
+  }
+}
+function setSharedEvents(cy, identifiers, options, start) {
+  for (let i = 0; i < identifiers.length; i++) {
+    identifiers[i].position({
+      x: start.x + options.eventOffset,
       y: -(options.eventOffset * i) - 300,
     });
     identifiers[i].data('_used', 'true');
@@ -123,23 +213,23 @@ function setIdentifiers(cy, identifiers, options, start) {
 }
 
 export default function layoutB(cy) {
-  let persons = getOrderedPersons(cy);
+  let persons = getPersonsBySharedNodes(cy);
   let events, identifiers, parent;
   // colorCode(cy);
   resetData(cy);
   let prevMax = 0;
+  console.log(getPersonsBySharedNodes(cy));
 
   for (let i = 0; i < persons.length; i++) {
-    parent = cy.$id(persons[i].id);
-    events = getEventsFromPerson(cy, persons[i].id);
-    identifiers = getIdentifiersFromPerson(cy, persons[i].id);
-
-    //getEdgesToOnlyChild(parent);
+    parent = cy.$id(persons[i]);
+    events = getEventsFromPerson(cy, persons[i]);
+    identifiers = getIdentifiersFromPerson(cy, persons[i]);
 
     prevMax = 150 + setEvents(cy, identifiers.unique, options, { x: prevMax, y: 0 });
     parent.position({ x: prevMax, y: 0 });
 
-    setIdentifiers(cy, identifiers.shared.concat(events.shared), options, { x: prevMax, y: 0 });
+    setSharedIdentifiers(cy, identifiers.shared, options, { x: prevMax, y: 0 });
+    setSharedEvents(cy, events.shared, options, { x: prevMax, y: 0 });
 
     prevMax = 200 + setEvents(cy, events.unique, options, { x: prevMax, y: 0 });
   }
