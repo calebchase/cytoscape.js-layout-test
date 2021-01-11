@@ -5,6 +5,8 @@ import nodeText from './node.txt';
 import fcose from 'cytoscape-fcose';
 import euler from 'cytoscape-euler';
 import layoutB from './layoutB';
+import layoutC from './layoutC';
+import avsdf from 'cytoscape-avsdf';
 
 import { register as htmlnode } from 'cytoscape-html-node';
 var nodeHtmlLabel = require('cytoscape-node-html-label');
@@ -15,6 +17,7 @@ nodeHtmlLabel(cytoscape);
 
 cytoscape.use(euler);
 cytoscape.use(fcose);
+cytoscape.use(avsdf);
 
 import nodeOffset from './nodeOffset';
 
@@ -91,6 +94,10 @@ document.addEventListener('DOMContentLoaded', function () {
     e.run();
   };
 
+  document.getElementById('c').onclick = () => {
+    layoutC(cy);
+  };
+
   document.getElementById('b').onclick = () => {
     console.log('Running base layout');
     nodeOffset(cy.elements('node[type = "event"]'), { x: 100, y: 100 }, 150);
@@ -105,54 +112,54 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const htmlnode = cy.htmlnode();
 
-  htmlnode.createHtmlNode(cy, {
-    events: {
-      query: "[type = 'event']",
-      //defaultColor: 'lightGrey',
-      //altColor: 'darkBlue',
-      template: [
-        {
-          zoomRange: [0.001, 100],
-          template: {
-            html: `<div id="htmlLabel:#{data.id}">
-                   <img src="#{data.image}" width="75">
-                 </div>`,
-            cssClass: 'htmlCard',
-          },
-        },
-      ],
-    },
-    persons: {
-      query: "[type = 'person']",
-      //defaultColor: 'lightGrey',
-      //altColor: 'darkBlue',
-      template: [
-        {
-          zoomRange: [0.001, 100],
-          template: {
-            html: `<div id="htmlLabel:#{data.id}">
-                   <img src="#{data.image}" width="75">
-                 </div>`,
-            cssClass: 'htmlCard',
-          },
-        },
-      ],
-    },
-    iden: {
-      query: "[type = 'identifier']",
-      //defaultColor: 'lightGrey',
-      //altColor: 'darkBlue',
-      template: [
-        {
-          zoomRange: [0.001, 100],
-          template: {
-            html: `<div id="htmlLabel:#{data.id}">
-                   <img src="#{data.image}" width="75">
-                 </div>`,
-            cssClass: 'htmlCard',
-          },
-        },
-      ],
-    },
-  });
+  // htmlnode.createHtmlNode(cy, {
+  //   events: {
+  //     query: "[type = 'event']",
+  //     //defaultColor: 'lightGrey',
+  //     //altColor: 'darkBlue',
+  //     template: [
+  //       {
+  //         zoomRange: [0.001, 100],
+  //         template: {
+  //           html: `<div id="htmlLabel:#{data.id}">
+  //                  <img src="#{data.image}" width="75">
+  //                </div>`,
+  //           cssClass: 'htmlCard',
+  //         },
+  //       },
+  //     ],
+  //   },
+  //   persons: {
+  //     query: "[type = 'person']",
+  //     //defaultColor: 'lightGrey',
+  //     //altColor: 'darkBlue',
+  //     template: [
+  //       {
+  //         zoomRange: [0.001, 100],
+  //         template: {
+  //           html: `<div id="htmlLabel:#{data.id}">
+  //                  <img src="#{data.image}" width="75">
+  //                </div>`,
+  //           cssClass: 'htmlCard',
+  //         },
+  //       },
+  //     ],
+  //   },
+  //   iden: {
+  //     query: "[type = 'identifier']",
+  //     //defaultColor: 'lightGrey',
+  //     //altColor: 'darkBlue',
+  //     template: [
+  //       {
+  //         zoomRange: [0.001, 100],
+  //         template: {
+  //           html: `<div id="htmlLabel:#{data.id}">
+  //                  <img src="#{data.image}" width="75">
+  //                </div>`,
+  //           cssClass: 'htmlCard',
+  //         },
+  //       },
+  //     ],
+  //   },
+  // });
 });
