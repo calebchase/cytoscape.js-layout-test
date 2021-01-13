@@ -80,7 +80,6 @@ function getPersonsBySharedNodes(cy) {
   }
 
   permArr = permutator(personsIdArr);
-  console.log(orderedPersons);
 
   for (let i = 0; i < permArr.length; i++) {
     curCount = 0;
@@ -92,8 +91,6 @@ function getPersonsBySharedNodes(cy) {
       maxList = permArr[i];
     }
   }
-  console.log(maxList);
-
   return maxList;
 }
 
@@ -135,8 +132,7 @@ function getEventsFromPerson(cy, personId) {
       setEdgesTaxi(children[i].connectedEdges());
     } else {
       if (children[i].data('_taxiSet') != 'true') {
-        setEdgesTaxi(person.edgesWith(`node[id = "${children[i].id()}" ]`));
-        console.log(person.edgesWith(`node[id = "${children[i].id()}" ]`));
+        //setEdgesTaxi(person.edgesWith(`node[id = "${children[i].id()}" ]`));
         children[i].data('_taxiSet', 'true');
       }
       events.shared.push(children[i]);
@@ -159,8 +155,7 @@ function getIdentifiersFromPerson(cy, personId) {
       setEdgesTaxi(children[i].connectedEdges());
     } else {
       if (children[i].data('_taxiSet') != 'true') {
-        setEdgesTaxi(person.edgesWith(`node[id = "${children[i].id()}" ]`));
-        console.log(person.edgesWith(`node[id = "${children[i].id()}" ]`));
+        //setEdgesTaxi(person.edgesWith(`node[id = "${children[i].id()}" ]`));
         children[i].data('_taxiSet', 'true');
       }
 
@@ -212,13 +207,68 @@ function setSharedEvents(cy, identifiers, options, start) {
   }
 }
 
+function nodeListToArray(nodes) {
+  let array = [];
+  for (let i = 0; i < nodes.length; i++) {
+    array.push(nodes[i].id());
+  }
+  return array;
+}
+
+function findPlacementParentIndex(nodeList, target) {
+  for (let i = 0; i < nodeList.length; i++) {
+    if (nodeList[i] == target) return i;
+  }
+  return -1;
+}
+
+function findPlacementParent(allParents, childParents) {
+  let count = 0;
+  for (let i = 0; i < allParents.length; i++) {
+    if (childParents.includes(allParents[i])) {
+      count++;
+    }
+    if (Math.ceil(childParents.length / 2) == count) {
+      return allParents[i];
+    }
+  }
+  return -1;
+}
+
+function setSharedNodes(cy, parents, nodes) {
+  let persons = {
+    idList: parents,
+    eventMaxY: new Array(parents.length).fill(0),
+    identifierMaxY: new Array(parents.length).fill(0),
+  };
+  let offset;
+
+  for (let i = 0; i < nodes.length; i++) {
+    let childParents = nodeListToArray(
+      nodes[i].connectedEdges().connectedNodes(`node[type = "person"][id != "${nodes[i].id()}"]`)
+    );
+
+    let placementParent = findPlacementParent(persons.idList, childParents);
+    let index = findPlacementParentIndex(parents, placementParent);
+    console.log(index);
+
+    //let childNode = cy.nodes(`node[id = ${nodes[i]}]`);
+    if (nodes[i].data('type') == 'event') offset = 150;
+    else offset = -150;
+
+    nodes[i].position({
+      x: cy.nodes(`node[id = "${placementParent}"]`).position('x'),
+      y: -150 + (persons.eventMaxY[index] -= 150),
+    });
+  }
+}
+
 export default function layoutB(cy) {
   let persons = getPersonsBySharedNodes(cy);
   let events, identifiers, parent;
   // colorCode(cy);
   resetData(cy);
   let prevMax = 0;
-  console.log(getPersonsBySharedNodes(cy));
 
   for (let i = 0; i < persons.length; i++) {
     parent = cy.$id(persons[i]);
@@ -228,9 +278,15 @@ export default function layoutB(cy) {
     prevMax = 150 + setEvents(cy, identifiers.unique, options, { x: prevMax, y: 0 });
     parent.position({ x: prevMax, y: 0 });
 
-    setSharedIdentifiers(cy, identifiers.shared, options, { x: prevMax, y: 0 });
-    setSharedEvents(cy, events.shared, options, { x: prevMax, y: 0 });
+    // setSharedIdentifiers(cy, identifiers.shared, options, { x: prevMax, y: 0 });
+    // setSharedEvents(cy, events.shared, options, { x: prevMax, y: 0 });
 
     prevMax = 200 + setEvents(cy, events.unique, options, { x: prevMax, y: 0 });
   }
+
+  setSharedNodes(
+    cy,
+    persons,
+    cy.nodes(`node[type = "event"][_used != "true"], node[type = "identifier"][_used != "true"]`)
+  );
 }
