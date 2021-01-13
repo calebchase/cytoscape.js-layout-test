@@ -77,6 +77,6 @@ function generateElements(options) {
 
 let elements = generateElements(options);
 
-fs.writeFile('../src/node.txt', JSON.stringify(elements), function (err) {
+fs.writeFile('../src/node2.txt', JSON.stringify(elements), function (err) {
   if (err) return console.log(err);
 });

@@ -16,12 +16,12 @@ options = {
   person: {
     rangePerNode: [3, 10],
     sharedRange: [1, 2],
-    sharedPercent: 0.4,
+    sharedPercent: 0.2,
   },
   identifier: {
     rangePerNode: [2, 3],
     sharedRange: [1, 2],
-    sharedPercent: 0.5,
+    sharedPercent: 0.2,
   },
 };
 

@@ -2,6 +2,7 @@ console.log('Hello, World!');
 
 import cytoscape from 'cytoscape';
 import nodeText from './node.txt';
+import nodeText2 from './node2.txt';
 import fcose from 'cytoscape-fcose';
 import euler from 'cytoscape-euler';
 import layoutB from './layoutB';
@@ -56,7 +57,6 @@ document.addEventListener('DOMContentLoaded', function () {
       spacingFactor: 0.5,
     },
   }));
-  cy.add(JSON.parse(nodeText));
 
   //nodeOffset(cy.elements('node[type = "event"]'), { x: 100, y: 100 }, 150);
   //nodeOffset(cy.elements('node[type = "person"]'), { x: 100, y: 400 }, 150);
@@ -95,6 +95,7 @@ document.addEventListener('DOMContentLoaded', function () {
   };
 
   document.getElementById('c').onclick = () => {
+    cy.add(JSON.parse(nodeText2));
     layoutC(cy);
   };
 
@@ -107,6 +108,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   document.getElementById('layout').onclick = () => {
     console.log('Running layoutB');
+    cy.add(JSON.parse(nodeText));
     layoutB(cy);
   };
 
