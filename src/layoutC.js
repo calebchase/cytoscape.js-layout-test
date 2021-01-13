@@ -10,6 +10,8 @@ export default function layoutC(cy) {
   cy.edges('type[event], type[identifier]').style({
     'curve-style': 'bezier',
     'control-point-step-size': 10,
+    'target-arrow-shape': 'none',
+    'line-cap': 'round',
   });
 
   cy.layout({
