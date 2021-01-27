@@ -37,6 +37,24 @@ function hasTwoParents(node) {
   return node.connectedEdges().length == 1;
 }
 
+function highlightConnectedEdges(selector, color) {
+  cy.on('tap', selector, function (evt) {
+    if (evt.target.data('layEdgeOn') == true) {
+      evt.target.connectedEdges().style({
+        'line-color': 'grey',
+        'z-index': 0,
+      });
+      evt.target.data('layEdgeOn', false);
+    } else {
+      evt.target.connectedEdges().style({
+        'line-color': color,
+        'z-index': 1,
+      });
+      evt.target.data('layEdgeOn', true);
+    }
+  });
+}
+
 function permutator(inputArr) {
   var results = [];
 
@@ -395,6 +413,7 @@ export default function layoutB(cy) {
   let events, identifiers, parent;
   colorCode(cy);
   resetData(cy);
+  highlightConnectedEdges('node', 'red');
   let prevMax = [0, 0];
   let yMax = 0;
 
