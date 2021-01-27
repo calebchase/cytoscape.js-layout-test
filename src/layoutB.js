@@ -15,6 +15,12 @@ function resetData(cy) {
   }
 }
 
+function setEdgeBez(edge) {
+  edge.style({
+    'curve-style': 'straight',
+  });
+}
+
 function setEdgesTaxi(edge) {
   edge.style({
     'curve-style': 'taxi',
@@ -155,7 +161,7 @@ function getIdentifiersFromPerson(cy, personId) {
       setEdgesTaxi(children[i].connectedEdges());
     } else {
       if (children[i].data('_taxiSet') != 'true') {
-        //setEdgesTaxi(person.edgesWith(`node[id = "${children[i].id()}" ]`));
+        setEdgesTaxi(person.edgesWith(`node[id = "${children[i].id()}" ]`));
         children[i].data('_taxiSet', 'true');
       }
 
@@ -168,13 +174,13 @@ function getIdentifiersFromPerson(cy, personId) {
 function setEvents(cy, events, options, start) {
   let eventsDim = Math.ceil(Math.sqrt(events.length));
   let offsetMult = 1;
-  let xMax = 0;
+  let xMax = [0, 0];
   let xMult = 0;
 
   for (let i = 0; i < events.length; i++) {
     events[i].position({
       x: start.x + options.eventOffset * xMult++,
-      y: start.y + options.eventOffset * offsetMult,
+      y: -(start.y + options.eventOffset * offsetMult),
     });
 
     if ((i + 1) % eventsDim == 0) {
@@ -183,8 +189,10 @@ function setEvents(cy, events, options, start) {
     }
 
     events[i].data('_used', 'true');
-    xMax = Math.max(xMax, events[i].position('x'));
+    xMax[0] = Math.max(xMax[0], events[i].position('x'));
+    xMax[1] = Math.min(xMax[1], events[i].position('y'));
   }
+  console.log(xMax);
   return xMax;
 }
 
@@ -235,58 +243,182 @@ function findPlacementParent(allParents, childParents) {
   return -1;
 }
 
-function setSharedNodes(cy, parents, nodes) {
+function getPersonWidthIndexs(node, parents) {
+  let childParents = nodeListToArray(
+    node.connectedEdges().connectedNodes(`node[type = "person"][id != "${node.id()}"]`)
+  );
+
+  let parentIndexArr = [];
+
+  let min = -1,
+    max = -1;
+
+  for (let j = 0; j < parents.length; j++) {
+    if (childParents.includes(parents[j])) {
+      parentIndexArr.push(j);
+    }
+  }
+  return parentIndexArr.sort((a, b) => a - b);
+}
+
+function getPersonWidth(node, parents) {
+  let childParents = nodeListToArray(
+    node.connectedEdges().connectedNodes(`node[type = "person"][id != "${node.id()}"]`)
+  );
+
+  let min = -1,
+    max = -1;
+
+  for (let j = 0; j < parents.length; j++) {
+    if (min == -1 && childParents.includes(parents[j])) {
+      min = j;
+    } else if (childParents.includes(parents[j])) max = j;
+  }
+  return max - min;
+}
+
+function isConflict(a, b) {
+  console.log(a, b);
+  for (let i = 0; i < a.length - 1; i++) {
+    for (let j = 0; j < a.length - 1; j++) {
+      if (b[j] < a[i + 1] && a[i + 1] < b[j + 1]) {
+        return true;
+      } else if (b[j] < a[i] && a[i] < b[j + 1]) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function increaseLevel(a, b) {
+  return a[0] <= b[0] && a[1] >= b[1];
+}
+
+function checkLineStyle(nodeLevel, curIndex) {
+  let increase = false;
+  for (const i in nodeLevel) {
+    for (let j = 0; j < nodeLevel[i].length; j++) {
+      console.log(increase);
+      if (i == curIndex.key && j == curIndex.index) return increase;
+
+      if (
+        increase == false &&
+        increaseLevel(nodeLevel[curIndex.key][curIndex.index].range, nodeLevel[i][j].range)
+      ) {
+        console.log(`${nodeLevel[curIndex.key][curIndex.index].range} levels with ${nodeLevel[i][j].range}`);
+        increase = true;
+      }
+
+      if (isConflict(nodeLevel[curIndex.key][curIndex.index].range, nodeLevel[i][j].range)) {
+        console.log(
+          `${nodeLevel[curIndex.key][curIndex.index].range} conflicts with ${nodeLevel[i][j].range}`
+        );
+        setEdgeBez(nodeLevel[curIndex.key][curIndex.index].node.connectedEdges());
+        nodeLevel[i][j].range = [-2, -1];
+        return false;
+      }
+    }
+  }
+  return increase;
+}
+function setSharedNodes(cy, parents, nodes, yMax) {
   let persons = {
     idList: parents,
     eventMaxY: new Array(parents.length).fill(0),
     identifierMaxY: new Array(parents.length).fill(0),
   };
+
   let offset;
+  let bonusLevel = 0;
 
-  for (let i = 0; i < nodes.length; i++) {
-    let childParents = nodeListToArray(
-      nodes[i].connectedEdges().connectedNodes(`node[type = "person"][id != "${nodes[i].id()}"]`)
-    );
+  let nodeLevel = {};
 
-    let placementParent = findPlacementParent(persons.idList, childParents);
-    let index = findPlacementParentIndex(parents, placementParent);
-    console.log(index);
+  nodes = nodes.sort((a, b) => {
+    return getPersonWidth(a, parents) < getPersonWidth(b, parents) ? 1 : -1;
+  });
 
-    //let childNode = cy.nodes(`node[id = ${nodes[i]}]`);
-    if (nodes[i].data('type') == 'event') offset = 150;
-    else offset = -150;
-
-    nodes[i].position({
-      x: cy.nodes(`node[id = "${placementParent}"]`).position('x'),
-      y: -150 + (persons.eventMaxY[index] -= 150),
+  for (let j = 0; j < nodes.length; j++) {
+    if (nodeLevel[getPersonWidth(nodes[j], parents)] == undefined) {
+      nodeLevel[getPersonWidth(nodes[j], parents)] = [];
+    }
+    nodeLevel[getPersonWidth(nodes[j], parents)].push({
+      node: nodes[j],
+      range: getPersonWidthIndexs(nodes[j], parents).sort((a, b) => a - b),
     });
+  }
+
+  for (let f = 0; f < nodes.length; f++) console.log(getPersonWidth(nodes[f], parents));
+  let increase = false;
+  let increaseLevelNum = 0;
+  let count = 0;
+  for (const i in nodeLevel) {
+    count++;
+    for (let j = 0; j < nodeLevel[i].length; j++) {
+      console.log(nodeLevel[i][j]);
+      increase = checkLineStyle(nodeLevel, { key: i, index: j });
+      console.log(increase);
+
+      if (increase && j != 0) increaseLevelNum++;
+
+      let childParents = nodeListToArray(
+        nodeLevel[i][j].node
+          .connectedEdges()
+          .connectedNodes(`node[type = "person"][id != "${nodeLevel[i][j].node.id()}"]`)
+      );
+
+      let placementParent = findPlacementParent(persons.idList, childParents);
+
+      console.log(nodeLevel[i][j].node.connectedEdges().style('curve-style'));
+
+      if (nodeLevel[i][j].node.connectedEdges().style('curve-style') != 'straight') {
+        nodeLevel[i][j].node.position({
+          x: cy.nodes(`node[id = "${placementParent}"]`).position('x') + 150,
+          y: (increaseLevelNum + count) * -150 + yMax,
+        });
+        if (increase) increaseLevelNum++;
+        increase = false;
+      } else {
+        nodeLevel[i][j].node.position({
+          x: cy.nodes(`node[id = "${placementParent}"]`).position('x'),
+          y: count * 150,
+        });
+      }
+    }
+    if (increaseLevelNum > 0) increaseLevelNum--;
   }
 }
 
 export default function layoutB(cy) {
+  setEdgesTaxi(cy.edges());
   let persons = getPersonsBySharedNodes(cy);
   let events, identifiers, parent;
-  // colorCode(cy);
+  colorCode(cy);
   resetData(cy);
-  let prevMax = 0;
+  let prevMax = [0, 0];
+  let yMax = 0;
 
   for (let i = 0; i < persons.length; i++) {
     parent = cy.$id(persons[i]);
     events = getEventsFromPerson(cy, persons[i]);
     identifiers = getIdentifiersFromPerson(cy, persons[i]);
 
-    prevMax = 150 + setEvents(cy, identifiers.unique, options, { x: prevMax, y: 0 });
-    parent.position({ x: prevMax, y: 0 });
+    prevMax = setEvents(cy, identifiers.unique, options, { x: prevMax[0], y: 0 });
+    prevMax[0] += 150;
+    yMax = Math.min(prevMax[1], yMax);
 
-    // setSharedIdentifiers(cy, identifiers.shared, options, { x: prevMax, y: 0 });
-    // setSharedEvents(cy, events.shared, options, { x: prevMax, y: 0 });
+    parent.position({ x: prevMax[0], y: 0 });
 
-    prevMax = 200 + setEvents(cy, events.unique, options, { x: prevMax, y: 0 });
+    prevMax = setEvents(cy, events.unique, options, { x: prevMax[0], y: 0 });
+    prevMax[0] += 150;
+    yMax = Math.min(prevMax[1], yMax);
   }
+  console.log('boop', yMax);
 
   setSharedNodes(
     cy,
     persons,
-    cy.nodes(`node[type = "event"][_used != "true"], node[type = "identifier"][_used != "true"]`)
+    cy.nodes(`node[type = "event"][_used != "true"], node[type = "identifier"][_used != "true"]`),
+    yMax
   );
 }
