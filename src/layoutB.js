@@ -15,6 +15,13 @@ function resetData(cy) {
   }
 }
 
+function enlargePersons() {
+  cy.nodes('node[type = "person"]').style({
+    width: 70,
+    height: 70,
+  });
+}
+
 function setEdgeBez(edge) {
   edge.style({
     'curve-style': 'straight',
@@ -40,15 +47,20 @@ function hasTwoParents(node) {
 function highlightConnectedEdges(selector, color) {
   cy.on('tap', selector, function (evt) {
     if (evt.target.data('layEdgeOn') == true) {
+      console.log(evt.target.connectedEdges().style('width'));
       evt.target.connectedEdges().style({
         'line-color': 'grey',
+        'target-arrow-color': 'grey',
         'z-index': 0,
+        width: '3px',
       });
       evt.target.data('layEdgeOn', false);
     } else {
       evt.target.connectedEdges().style({
         'line-color': color,
+        'target-arrow-color': color,
         'z-index': 1,
+        width: '5x',
       });
       evt.target.data('layEdgeOn', true);
     }
@@ -198,7 +210,7 @@ function setEvents(cy, events, options, start) {
   for (let i = 0; i < events.length; i++) {
     events[i].position({
       x: start.x + options.eventOffset * xMult++,
-      y: -(start.y + options.eventOffset * offsetMult),
+      y: start.y + options.eventOffset * offsetMult,
     });
 
     if ((i + 1) % eventsDim == 0) {
@@ -310,22 +322,29 @@ function isConflict(a, b) {
 }
 
 function increaseLevel(a, b) {
-  return a[0] <= b[0] && a[1] >= b[1];
+  let increase = a[a.length - 1] == b[0] || b[b.length - 1] == a[0];
+  for (let i = 0; i < a.length - 1; i++) {
+    for (let j = 0; j < b.length - 1; j++) {
+      if (a[i] <= b[j] && a[i + 1] >= b[j + 1]) increase = true;
+    }
+  }
+  return increase;
 }
 
 function checkLineStyle(nodeLevel, curIndex) {
   let increase = false;
   for (const i in nodeLevel) {
     for (let j = 0; j < nodeLevel[i].length; j++) {
-      console.log(increase);
       if (i == curIndex.key && j == curIndex.index) return increase;
 
-      if (
-        increase == false &&
-        increaseLevel(nodeLevel[curIndex.key][curIndex.index].range, nodeLevel[i][j].range)
-      ) {
+      if (increaseLevel(nodeLevel[curIndex.key][curIndex.index].range, nodeLevel[i][j].range)) {
         console.log(`${nodeLevel[curIndex.key][curIndex.index].range} levels with ${nodeLevel[i][j].range}`);
         increase = true;
+        nodeLevel[curIndex.key][curIndex.index].level = Math.max(
+          nodeLevel[curIndex.key][curIndex.index].level,
+          nodeLevel[i][j].level
+        );
+        console.log('level:', nodeLevel[curIndex.key][curIndex.index].level);
       }
 
       if (isConflict(nodeLevel[curIndex.key][curIndex.index].range, nodeLevel[i][j].range)) {
@@ -333,7 +352,7 @@ function checkLineStyle(nodeLevel, curIndex) {
           `${nodeLevel[curIndex.key][curIndex.index].range} conflicts with ${nodeLevel[i][j].range}`
         );
         setEdgeBez(nodeLevel[curIndex.key][curIndex.index].node.connectedEdges());
-        nodeLevel[i][j].range = [-2, -1];
+        nodeLevel[curIndex.key][curIndex.index].range = [-2, -1];
         return false;
       }
     }
@@ -363,6 +382,7 @@ function setSharedNodes(cy, parents, nodes, yMax) {
     nodeLevel[getPersonWidth(nodes[j], parents)].push({
       node: nodes[j],
       range: getPersonWidthIndexs(nodes[j], parents).sort((a, b) => a - b),
+      level: 1,
     });
   }
 
@@ -387,19 +407,19 @@ function setSharedNodes(cy, parents, nodes, yMax) {
 
       let placementParent = findPlacementParent(persons.idList, childParents);
 
-      console.log(nodeLevel[i][j].node.connectedEdges().style('curve-style'));
-
       if (nodeLevel[i][j].node.connectedEdges().style('curve-style') != 'straight') {
+        if (increase) nodeLevel[i][j].level += 1;
+
         nodeLevel[i][j].node.position({
           x: cy.nodes(`node[id = "${placementParent}"]`).position('x') + 150,
-          y: (increaseLevelNum + count) * -150 + yMax,
+          y: nodeLevel[i][j].level * -150 + yMax,
         });
-        if (increase) increaseLevelNum++;
+
         increase = false;
       } else {
         nodeLevel[i][j].node.position({
           x: cy.nodes(`node[id = "${placementParent}"]`).position('x'),
-          y: count * 150,
+          y: -300,
         });
       }
     }
@@ -413,6 +433,7 @@ export default function layoutB(cy) {
   let events, identifiers, parent;
   colorCode(cy);
   resetData(cy);
+  enlargePersons();
   highlightConnectedEdges('node', 'red');
   let prevMax = [0, 0];
   let yMax = 0;
@@ -438,6 +459,6 @@ export default function layoutB(cy) {
     cy,
     persons,
     cy.nodes(`node[type = "event"][_used != "true"], node[type = "identifier"][_used != "true"]`),
-    yMax
+    -300
   );
 }
