@@ -1,0 +1,46 @@
+<!DOCTYPE>
+
+<html>
+
+<head>
+  <title>cytoscape-layout-test demo</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
+
+  <script src="main.bundle.js"></script>
+
+  <style>
+    ​ body {
+      font-family: 'Calibri';
+      font-size: 14px;
+      overflow: hidden;
+    }
+
+    #cy {
+      position: absolute;
+      left: 0;
+      top: 30;
+      bottom: 0;
+      right: 0;
+      z-index: 1;
+    }
+
+    h1 {
+      font-size: 1em;
+      font-family: 'Calibri';
+    }
+  </style>
+
+<body>
+  <h1>
+    <button type="base" id="b">base</button>
+    <button type="euler" id="e">euler</button>
+    <button type="fcose" id="f">fcose</button>
+    <button type="layoutB" id="layout">layoutB</button>
+    <button type="layoutC" id="c">layoutC</button>
+  </h1>
+
+  <div id="cy"></div>
+</body>
+
+</html>
