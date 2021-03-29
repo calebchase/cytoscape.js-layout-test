@@ -1,3 +1,5 @@
+import configSegEdges from './simpleEdgeBund.js';
+
 let options = {
   eventOffset: 150,
 };
@@ -22,102 +24,9 @@ function enlargePersons() {
   });
 }
 
-function lineDistance(a, b) {
-  return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
-}
-
-function getSign(a, b) {
-  if (a < b) return -1;
-  return 1;
-}
-
-function getDir(targetY, baseY) {
-  if (baseY < targetY) return -1;
-  return 1;
-}
-
-function calculateSegDistance(edge, targetPoint, min) {
-  let startPoint = edge.source().position();
-  let endPoint = edge.target().position();
-  let sign = getSign(startPoint.x, endPoint.x);
-
-  targetPoint.x += sign * 300;
-
-  let mainSlope = (startPoint.y - endPoint.y) / (startPoint.x - endPoint.x);
-  let intersectSlope = -(1 / mainSlope);
-  let mainB = endPoint.y - mainSlope * endPoint.x;
-
-  let intersectB = targetPoint.y - intersectSlope * targetPoint.x;
-
-  let intersectX = (intersectB - mainB) / (mainSlope - intersectSlope);
-  let intersectY = intersectSlope * intersectX + intersectB;
-
-  let distance = lineDistance({ x: targetPoint.x, y: targetPoint.y }, { x: intersectX, y: intersectY });
-
-  let weight =
-    lineDistance(startPoint, { x: intersectX, y: intersectY }) / lineDistance(startPoint, endPoint);
-
-  sign = -getDir(targetPoint.y, intersectY) * sign;
-
-  edge.style({
-    'segment-distances': `${-sign * distance} `,
-    'segment-weights': `${weight} `,
-  });
-}
-
-function setPoints(sameX) {
-  for (const key in sameX) {
-    let nodes = sameX[key].nodes;
-    let parent = sameX[key].parent;
-    let minYval = -Infinity;
-    if (nodes.length < 2) continue;
-    for (let i = 0; i < nodes.length; i++) {
-      if (nodes[i].position('y') > minYval) {
-        minYval = nodes[i].position('y');
-      }
-    }
-
-    if (minYval != -Infinity && nodes.length > 1) {
-      for (let i = 0; i < nodes.length; i++) {
-        let edges = parent.connectedEdges(`edge[type = "bez"]`);
-
-        for (let k = 0; k < edges.length; k++) {
-          if (edges[k].target().id() == nodes[i].id()) {
-            calculateSegDistance(edges[k], {
-              x: nodes[i].position('x'),
-              y: minYval,
-            });
-            break;
-          }
-        }
-      }
-    }
-  }
-}
-
-function configBezEdges(cy, parents) {
-  for (let i = 0; i < parents.length; i++) {
-    let targetNodes = cy.$id(parents[i]).connectedEdges(`edge[type = "bez"]`).connectedNodes();
-    let currentParent = cy.$id(parents[i]);
-    let sameX = {};
-
-    for (let j = 0; j < targetNodes.length; j++) {
-      if (sameX[targetNodes[j].position('x')] == undefined) {
-        sameX[targetNodes[j].position('x')] = {};
-        sameX[targetNodes[j].position('x')].parent = currentParent;
-        sameX[targetNodes[j].position('x')].nodes = [];
-      }
-      if (targetNodes[j].position('x') != currentParent.position('x')) {
-        sameX[targetNodes[j].position('x')].nodes.push(targetNodes[j]);
-      }
-    }
-    setPoints(sameX);
-  }
-}
-
-function setEdgeBez(edge) {
+function setEdgeSegment(edge) {
   edge.data({
-    type: 'bez',
+    type: 'segment',
   });
   edge.style({
     'curve-style': 'segments',
@@ -135,10 +44,6 @@ function setEdgesTaxi(edge) {
 }
 
 function hasOneParent(node) {
-  return node.connectedEdges().length == 1;
-}
-
-function hasTwoParents(node) {
   return node.connectedEdges().length == 1;
 }
 
@@ -164,63 +69,16 @@ function highlightConnectedEdges(selector, color) {
   });
 }
 
-function permutator(inputArr) {
-  var results = [];
-
-  function permute(arr, memo) {
-    var cur,
-      memo = memo || [];
-
-    for (var i = 0; i < arr.length; i++) {
-      cur = arr.splice(i, 1);
-      if (arr.length === 0) {
-        results.push(memo.concat(cur));
-      }
-      permute(arr.slice(), memo.concat(cur));
-      arr.splice(i, 0, cur[0]);
-    }
-
-    return results;
-  }
-
-  return permute(inputArr);
-}
-
 function getNumOfSharedNodes(nodeA, nodeB) {
   let nodeAChildren = nodeA.connectedEdges().connectedNodes();
   let nodeBChildren = nodeB.connectedEdges().connectedNodes();
   return nodeAChildren.filter((value) => nodeBChildren.includes(value)).length;
 }
 
-function convertNodeArrToObj(cy, arr) {
-  let obj = {};
-  for (let i = 0; i < arr.length; i++) {
-    let node = cy.$id(arr[i]);
-
-    obj[arr[i]] = {};
-
-    obj[arr[i]].attached = nodeListToArray(
-      node
-        .connectedEdges()
-        .connectedNodes()
-        .connectedEdges()
-        .connectedNodes(`node[type = "person"][id != "${node.id()}"]`)
-    );
-
-    obj[arr[i]].index = -1;
-  }
-  return obj;
-}
-
 function arraysEqual(a, b) {
   if (a === b) return true;
   if (a == null || b == null) return false;
   if (a.length !== b.length) return false;
-
-  // If you don't care about the order of the elements inside
-  // the array, you should sort both arrays here.
-  // Please note that calling sort on an array will modify that array.
-  // you might want to clone your array first.
 
   for (var i = 0; i < a.length; ++i) {
     if (a[i] !== b[i]) return false;
@@ -280,30 +138,6 @@ function getPersonsBySharedNodes(cy) {
     fastList = [];
   }
   return maxList;
-}
-
-function getOrderedPersons(cy) {
-  let persons = cy.elements('node[type = "person"]');
-  let insert = false;
-  let orderedPersons = [];
-
-  for (let i = 0; i < persons.length; i++) {
-    let edgeCount = persons[i].connectedEdges().connectedNodes('node[type = "event"]').length;
-    insert = false;
-
-    let length = orderedPersons.length;
-    for (let j = 0; j < length; j++) {
-      if (edgeCount > orderedPersons[j].edgeCount) {
-        orderedPersons.splice(j, 0, { id: persons[i].id(), edgeCount: edgeCount });
-        insert = true;
-        break;
-      }
-    }
-    if (!insert) {
-      orderedPersons.push({ id: persons[i].id(), edgeCount: edgeCount });
-    }
-  }
-  return orderedPersons;
 }
 
 function getEventsFromPerson(cy, personId) {
@@ -376,38 +210,12 @@ function setEvents(cy, events, options, start) {
   return xMax;
 }
 
-function setSharedIdentifiers(cy, identifiers, options, start) {
-  for (let i = 0; i < identifiers.length; i++) {
-    identifiers[i].position({
-      x: start.x - options.eventOffset,
-      y: -(options.eventOffset * i) - 300,
-    });
-    identifiers[i].data('_used', 'true');
-  }
-}
-function setSharedEvents(cy, identifiers, options, start) {
-  for (let i = 0; i < identifiers.length; i++) {
-    identifiers[i].position({
-      x: start.x + options.eventOffset,
-      y: -(options.eventOffset * i) - 300,
-    });
-    identifiers[i].data('_used', 'true');
-  }
-}
-
 function nodeListToArray(nodes) {
   let array = [];
   for (let i = 0; i < nodes.length; i++) {
     array.push(nodes[i].id());
   }
   return array;
-}
-
-function findPlacementParentIndex(nodeList, target) {
-  for (let i = 0; i < nodeList.length; i++) {
-    if (nodeList[i] == target) return i;
-  }
-  return -1;
 }
 
 function findPlacementParent(allParents, childParents) {
@@ -429,9 +237,6 @@ function getPersonWidthIndexs(node, parents) {
   );
 
   let parentIndexArr = [];
-
-  let min = -1,
-    max = -1;
 
   for (let j = 0; j < parents.length; j++) {
     if (childParents.includes(parents[j])) {
@@ -520,7 +325,6 @@ function checkLineStyle(nodeLevel, curIndex, foundSim) {
           nodeLevel[curIndex.key][curIndex.index].level,
           nodeLevel[i][j].level
         );
-        let max = Math.max(...nodeLevel[curIndex.key][curIndex.index].possibleLevelUps);
       }
     }
   }
@@ -534,7 +338,7 @@ function checkLineStyleConflicted(nodeLevel, curIndex) {
       if (i == curIndex.key && j == curIndex.index) return conflicted;
 
       if (isConflict(nodeLevel[curIndex.key][curIndex.index].range, nodeLevel[i][j].range)) {
-        setEdgeBez(nodeLevel[curIndex.key][curIndex.index].node.connectedEdges());
+        setEdgeSegment(nodeLevel[curIndex.key][curIndex.index].node.connectedEdges());
         nodeLevel[curIndex.key][curIndex.index].range = [-2, -1];
         return true;
       }
@@ -583,13 +387,11 @@ function setSharedNodes(cy, parents, nodes, yMax) {
   let increase = false;
   let count = 0;
   let maxConflictLevel = 0;
-  let conflictCount = 0;
 
   for (const i in nodeLevel) {
     count++;
     for (let j = 0; j < nodeLevel[i].length; j++) {
       increase = checkLineStyleConflicted(nodeLevel, { key: i, index: j });
-      if (increase) conflictCount++;
 
       let childParents = nodeListToArray(
         nodeLevel[i][j].node
@@ -649,20 +451,18 @@ function setSharedNodes(cy, parents, nodes, yMax) {
       foundSimCount = 0;
     }
   }
-  configBezEdges(cy, parents, nodes);
+  configSegEdges(cy, parents, nodes);
 }
 
 export default function layoutB(cy) {
-  setEdgesTaxi(cy.edges());
-  let persons = getPersonsBySharedNodes(cy);
-
-  let events, identifiers, parent;
-  colorCode(cy);
   resetData(cy);
-  enlargePersons();
-  highlightConnectedEdges('node', 'red');
+
+  let persons = getPersonsBySharedNodes(cy);
+  let events, identifiers, parent;
   let prevMax = [0, 0];
   let yMax = 0;
+
+  setEdgesTaxi(cy.edges());
 
   for (let i = 0; i < persons.length; i++) {
     parent = cy.$id(persons[i]);
