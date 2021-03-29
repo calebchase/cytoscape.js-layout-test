@@ -5,7 +5,7 @@ function register(cytoscape) {
     console.warn('Attempt to register cytoscape-layoutB with invalid cytoscape instance!');
     return;
   }
-  cytoscape('core', 'layoutB', runTriLayer);
+  cytoscape('core', 'trilayer', runTriLayer);
 }
 
 // auto-register if there is global cytoscape (i.e. window.cytoscape)
