@@ -1,21 +1,41 @@
-# cytoscape-layout
+# cytoscape-tri-layer
 
-## Clone project
+## Description
 
 - via direct download
 
 ## Dependencies
 
-- `npm install cytoscape`
-- `npm install webpack webpack-cli --save-dev`
-- `npm install raw-loader --save-dev`
-- `npm install webpack-dev-server --save-dev`
+- cytoscape: ^3.16.3
 
-## Start server
+## Usage instructions
 
-- `npm run start`
-- opens in http://localhost:8080/
+- Download the library:
+- via npm: `npm install cytoscape-tri-layer`
 
-## Test data
+ES import:
 
-- to generate data run `node gen.js` in `cytoscape.js-layout-test/dataGen`
+```js
+import cytoscape from 'cytoscape';
+cytoscape.use(trilayer);
+
+import { register as trilayer } from './index.js';
+```
+
+## API
+
+```js
+let cy = cytoscape({ ... });
+
+let options = {
+  horizontalNodeOffset: 150,
+  verticalNodeOffset: 150,
+  parentToChildSpacing: 150,
+  horizontalSharedOffset: 75,
+  parentQuery: 'node[type = "person"]',
+  childAQuery: 'node[type = "identifier"]',
+  childBQuery: 'node[type = "event"]',
+};
+
+cy.trilayer(options);
+```
