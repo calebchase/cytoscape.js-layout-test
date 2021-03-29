@@ -454,7 +454,7 @@ function setSharedNodes(cy, parents, nodes, yMax) {
   configSegEdges(cy, parents, nodes);
 }
 
-export default function layoutB(cy) {
+export function runTriLayer() {
   resetData(cy);
 
   let persons = getPersonsBySharedNodes(cy);
