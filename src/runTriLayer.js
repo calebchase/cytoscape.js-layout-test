@@ -1,9 +1,5 @@
 import configSegEdges from './simpleEdgeBund.js';
 
-let options = {
-  eventOffset: 150,
-};
-
 function colorCode(cy) {
   cy.style().selector('node[type = "event"]').style('background-color', 'darkred').update();
   cy.style().selector('node[type = "person"]').style('background-color', 'darkgreen').update();
@@ -86,17 +82,13 @@ function arraysEqual(a, b) {
   return true;
 }
 
-function getPersonsBySharedNodes(cy) {
-  let persons = cy.elements('node[type = "person"]');
+function getPersonsBySharedNodes(cy, options) {
+  let persons = cy.elements(options.parentQuery);
   let personsIdArr = [];
-  let permArr = [];
   let maxList = [];
   let fastList = [];
   let maxCount = -1;
-  let curCount;
   let orderedPersons = {};
-  let nodeObj = {};
-  let minCount = 1_000_000;
 
   for (let i = 0; i < persons.length; i++) {
     personsIdArr.push(persons[i].id());
@@ -114,7 +106,6 @@ function getPersonsBySharedNodes(cy) {
     fastList.push(personsIdArr[k]);
     maxTempCount = 0;
     for (let i = 0; i < personsIdArr.length; i++) {
-      curCount = 0;
       let maxId;
       let maxIdCount = 0;
       for (let j = 0; j < personsIdArr.length; j++) {
@@ -140,13 +131,13 @@ function getPersonsBySharedNodes(cy) {
   return maxList;
 }
 
-function getEventsFromPerson(cy, personId) {
+function getChildrenFromPerson(cy, personId, query) {
   let person = cy.$id(personId);
   let events = {
     unique: [],
     shared: [],
   };
-  let children = person.connectedEdges().connectedNodes(`node[type = "event"][_used != 'true']`);
+  let children = person.connectedEdges().connectedNodes(`${query}[_used != 'true']`);
 
   for (let i = 0; i < children.length; i++) {
     if (hasOneParent(children[i])) {
@@ -162,30 +153,6 @@ function getEventsFromPerson(cy, personId) {
   return events;
 }
 
-function getIdentifiersFromPerson(cy, personId) {
-  let person = cy.$id(personId);
-  let identifiers = {
-    unique: [],
-    shared: [],
-  };
-  let children = person.connectedEdges().connectedNodes(`node[type = "identifier"][_used != 'true']`);
-
-  for (let i = 0; i < children.length; i++) {
-    if (hasOneParent(children[i])) {
-      identifiers.unique.push(children[i]);
-      setEdgesTaxi(children[i].connectedEdges());
-    } else {
-      if (children[i].data('_taxiSet') != 'true') {
-        setEdgesTaxi(person.edgesWith(`node[id = "${children[i].id()}" ]`));
-        children[i].data('_taxiSet', 'true');
-      }
-
-      identifiers.shared.push(children[i]);
-    }
-  }
-  return identifiers;
-}
-
 function setEvents(cy, events, options, start) {
   let eventsDim = Math.ceil(Math.sqrt(events.length));
   let offsetMult = 1;
@@ -194,8 +161,8 @@ function setEvents(cy, events, options, start) {
 
   for (let i = 0; i < events.length; i++) {
     events[i].position({
-      x: start.x + options.eventOffset * xMult++,
-      y: start.y + options.eventOffset * offsetMult,
+      x: start.x + options.horizontalNodeOffset * xMult++,
+      y: start.y + options.verticalNodeOffset * offsetMult,
     });
 
     if ((i + 1) % eventsDim == 0) {
@@ -231,9 +198,9 @@ function findPlacementParent(allParents, childParents) {
   return -1;
 }
 
-function getPersonWidthIndexs(node, parents) {
+function getPersonWidthIndexs(node, parents, options) {
   let childParents = nodeListToArray(
-    node.connectedEdges().connectedNodes(`node[type = "person"][id != "${node.id()}"]`)
+    node.connectedEdges().connectedNodes(`${options.parentQuery}[id != "${node.id()}"]`)
   );
 
   let parentIndexArr = [];
@@ -246,9 +213,9 @@ function getPersonWidthIndexs(node, parents) {
   return parentIndexArr.sort((a, b) => a - b);
 }
 
-function getPersonWidth(node, parents) {
+function getPersonWidth(node, parents, options) {
   let childParents = nodeListToArray(
-    node.connectedEdges().connectedNodes(`node[type = "person"][id != "${node.id()}"]`)
+    node.connectedEdges().connectedNodes(`${options.parentQuery}[id != "${node.id()}"]`)
   );
 
   let min = 1000,
@@ -347,7 +314,7 @@ function checkLineStyleConflicted(nodeLevel, curIndex) {
   return conflicted;
 }
 
-function setSharedNodes(cy, parents, nodes, yMax) {
+function setSharedNodes(cy, parents, nodes, options) {
   let persons = {
     idList: parents,
     eventMaxY: new Array(parents.length).fill(0),
@@ -360,12 +327,12 @@ function setSharedNodes(cy, parents, nodes, yMax) {
   let nodeLevel = {};
 
   nodes = nodes.sort((a, b) => {
-    return getPersonWidth(a, parents) < getPersonWidth(b, parents) ? -1 : 1;
+    return getPersonWidth(a, parents, options) < getPersonWidth(b, parents, options) ? -1 : 1;
   });
 
   let tempNodes = [];
   for (let i = 0; i < nodes.length; i++) {
-    if (getPersonWidthIndexs(nodes[i], parents).length > 1) {
+    if (getPersonWidthIndexs(nodes[i], parents, options).length > 1) {
       tempNodes.push(nodes[i]);
     }
   }
@@ -377,7 +344,7 @@ function setSharedNodes(cy, parents, nodes, yMax) {
     }
     nodeLevel[0].push({
       node: nodes[j],
-      range: getPersonWidthIndexs(nodes[j], parents).sort((a, b) => a - b),
+      range: getPersonWidthIndexs(nodes[j], parents, options).sort((a, b) => a - b),
       level: 1,
       conflict: false,
       possibleLevelUps: [],
@@ -396,7 +363,7 @@ function setSharedNodes(cy, parents, nodes, yMax) {
       let childParents = nodeListToArray(
         nodeLevel[i][j].node
           .connectedEdges()
-          .connectedNodes(`node[type = "person"][id != "${nodeLevel[i][j].node.id()}"]`)
+          .connectedNodes(`${options.parentQuery}[id != "${nodeLevel[i][j].node.id()}"]`)
       );
 
       let placementParent = findPlacementParent(persons.idList, childParents);
@@ -404,7 +371,8 @@ function setSharedNodes(cy, parents, nodes, yMax) {
       if (increase) {
         nodeLevel[i][j].node.position({
           x: cy.nodes(`node[id = "${placementParent}"]`).position('x'),
-          y: -150 + -150 * persons[placementParent].maxlevel++,
+          y:
+            -options.parentToChildSpacing + -options.verticalNodeOffset * persons[placementParent].maxlevel++,
         });
         maxConflictLevel = Math.max(maxConflictLevel, persons[placementParent].maxlevel);
       }
@@ -436,15 +404,21 @@ function setSharedNodes(cy, parents, nodes, yMax) {
       let childParents = nodeListToArray(
         nodeLevel[i][j].node
           .connectedEdges()
-          .connectedNodes(`node[type = "person"][id != "${nodeLevel[i][j].node.id()}"]`)
+          .connectedNodes(`${options.parentQuery}[id != "${nodeLevel[i][j].node.id()}"]`)
       );
 
       let placementParent = findPlacementParent(persons.idList, childParents);
 
       if (nodeLevel[i][j].node.connectedEdges().style('curve-style') != 'segments') {
         nodeLevel[i][j].node.position({
-          x: cy.nodes(`node[id = "${placementParent}"]`).position('x') + 150 + foundSimCount * 75,
-          y: nodeLevel[i][j].level * -150 + maxConflictLevel * -150,
+          x:
+            cy.nodes(`node[id = "${placementParent}"]`).position('x') +
+            options.horizontalNodeOffset +
+            foundSimCount * options.horizontalSharedOffset,
+          y:
+            -options.parentToChildSpacing +
+            nodeLevel[i][j].level * -options.verticalNodeOffset +
+            maxConflictLevel * -options.verticalNodeOffset,
         });
         increase = false;
       }
@@ -454,10 +428,22 @@ function setSharedNodes(cy, parents, nodes, yMax) {
   configSegEdges(cy, parents, nodes);
 }
 
-export function runTriLayer() {
+export function runTriLayer(options) {
+  let defaults = {
+    horizontalNodeOffset: 150,
+    verticalNodeOffset: 150,
+    parentToChildSpacing: 150,
+    horizontalSharedOffset: 75,
+    parentQuery: 'node[type = "person"]',
+    childAQuery: 'node[type = "identifier"]',
+    childBQuery: 'node[type = "event"]',
+  };
+
+  options = { ...defaults, ...options };
+
   resetData(cy);
 
-  let persons = getPersonsBySharedNodes(cy);
+  let persons = getPersonsBySharedNodes(cy, options);
   let events, identifiers, parent;
   let prevMax = [0, 0];
   let yMax = 0;
@@ -466,30 +452,30 @@ export function runTriLayer() {
 
   for (let i = 0; i < persons.length; i++) {
     parent = cy.$id(persons[i]);
-    events = getEventsFromPerson(cy, persons[i]);
-    identifiers = getIdentifiersFromPerson(cy, persons[i]);
+    events = getChildrenFromPerson(cy, persons[i], options.childAQuery);
+    identifiers = getChildrenFromPerson(cy, persons[i], options.childBQuery);
 
     if (identifiers.unique.length > 0) {
-      prevMax = setEvents(cy, identifiers.unique, options, { x: prevMax[0], y: 0 });
+      prevMax = setEvents(cy, identifiers.unique, options, { x: prevMax[0], y: 0 }, options);
     }
 
-    prevMax[0] += 150;
+    prevMax[0] += options.horizontalNodeOffset;
     yMax = Math.min(prevMax[1], yMax);
 
     parent.position({ x: prevMax[0], y: 0 });
 
     if (events.unique.length > 0) {
-      prevMax = setEvents(cy, events.unique, options, { x: prevMax[0], y: 0 });
+      prevMax = setEvents(cy, events.unique, options, { x: prevMax[0], y: 0 }, options);
     }
 
-    prevMax[0] += 150;
+    prevMax[0] += options.horizontalNodeOffset;
     yMax = Math.min(prevMax[1], yMax);
   }
 
-  return setSharedNodes(
+  setSharedNodes(
     cy,
     persons,
-    cy.nodes(`node[type = "event"][_used != "true"], node[type = "identifier"][_used != "true"]`),
-    -300
+    cy.nodes(`${options.childAQuery}[_used != "true"], ${options.childBQuery}[_used != "true"]`),
+    options
   );
 }

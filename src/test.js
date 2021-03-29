@@ -2,27 +2,13 @@ import cytoscape from 'cytoscape';
 import nodeText from './testData0.txt';
 
 import { register as htmlnode } from 'cytoscape-html-node';
-import { register as layoutB } from './index.js';
-
-//import { runLayoutB } from './runLayoutB.js';
+import { register as trilayer } from './index.js';
 
 var nodeHtmlLabel = require('cytoscape-node-html-label');
 
-// register extensions
-
 cytoscape.use(htmlnode);
 nodeHtmlLabel(cytoscape);
-cytoscape.use(layoutB);
-//layoutB(cytoscape);
-// //cytoscape.layoutB();
-
-// console.log(layoutB);
-
-//nodeHtmlLabel(cytoscape);
-
-// cytoscape.use(euler);
-// cytoscape.use(fcose);
-// cytoscape.use(avsdf);
+cytoscape.use(trilayer);
 
 document.addEventListener('DOMContentLoaded', function () {
   var cy = (window.cy = cytoscape({
@@ -63,13 +49,16 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('layout').onclick = () => {
     console.log('Running layoutB');
 
-    let avg = 0;
-    console.log(cy);
     cy.add(JSON.parse(nodeText));
-    console.log(cy);
-
-    cy.layoutB();
+    let options = {
+      horizontalNodeOffset: 150,
+      verticalNodeOffset: 150,
+      parentToChildSpacing: 150,
+      horizontalSharedOffset: 75,
+      parentQuery: 'node[type = "person"]',
+      childAQuery: 'node[type = "identifier"]',
+      childBQuery: 'node[type = "event"]',
+    };
+    cy.trilayer(options);
   };
-
-  //const htmlnode = cy.htmlnode();
 });
