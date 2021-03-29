@@ -75,12 +75,7 @@ function calculateSegDistance(edge, targetPoint, min) {
 
   sign = -getDir(targetPoint.y, intersectY) * sign;
 
-  // if (endPoint.y == targetPoint.y) {
-  //   sign *= -1;
-  // }
   edge.style({
-    // 'control-point-distances': `${sign * distance} ${sign * -distance}`,
-    // 'control-point-weights': `${min} ${max}`,
     'segment-distances': `${-sign * distance} `,
     'segment-weights': `${weight} `,
   });
@@ -106,9 +101,6 @@ function setControlPoints(edge) {
 
   let sign = getSign(startPoint.x, endPoint.x);
 
-  // edge.target().style({ backgroundColor: 'purple' });
-  // edge.source().style({ backgroundColor: 'yellow' });
-
   let weight =
     lineDistance(startPoint, { x: intersectX, y: intersectY }) / lineDistance(startPoint, endPoint);
 
@@ -119,13 +111,6 @@ function setControlPoints(edge) {
   console.log(distance, weight);
   let min = Math.min(weight, 1 - weight);
   let max = 1 - min;
-
-  // edge.style({
-  //   // 'control-point-distances': `${sign * distance} ${sign * -distance}`,
-  //   // 'control-point-weights': `${min} ${max}`,
-  //   'segment-distances': `${distance} `,
-  //   'segment-weights': `${weight} `,
-  // });
 
   console.log('ree', startPoint, endPoint);
   console.log('ree');
@@ -151,10 +136,6 @@ function setPoints(sameX) {
 
         for (let k = 0; k < edges.length; k++) {
           if (edges[k].target().id() == nodes[i].id()) {
-            // console.log('iii', minYval);
-            // console.log('iiii', parent.position());
-            // console.log('iiiii', nodes[i].position());
-
             calculateSegDistance(edges[k], {
               x: nodes[i].position('x'),
               y: minYval,
@@ -167,13 +148,7 @@ function setPoints(sameX) {
   }
 }
 
-function configBezEdges(cy, parents, nodes) {
-  let edges = cy.edges(`edge[type = "bez"]`);
-
-  // for (let i = 0; i < edges.length; i++) {
-  //   setControlPoints(edges[i]);
-  // }
-
+function configBezEdges(cy, parents) {
   for (let i = 0; i < parents.length; i++) {
     let targetNodes = cy.$id(parents[i]).connectedEdges(`edge[type = "bez"]`).connectedNodes();
     let currentParent = cy.$id(parents[i]);
@@ -195,7 +170,6 @@ function configBezEdges(cy, parents, nodes) {
 }
 
 function setEdgeBez(edge) {
-  //edgeDistance(edge);
   edge.data({
     type: 'bez',
   });
@@ -203,11 +177,6 @@ function setEdgeBez(edge) {
     'curve-style': 'segments',
     'segment-distances': `0`,
     'edge-distances': 'node-position',
-
-    // 'source-endpoint': '0',
-    // 'target-endpoint': '10000',
-    // 'control-point-distances': '100, 500',
-    // 'control-point-weights': '.2 .8',
   });
 }
 
@@ -230,7 +199,6 @@ function hasTwoParents(node) {
 function highlightConnectedEdges(selector, color) {
   cy.on('tap', selector, function (evt) {
     if (evt.target.data('layEdgeOn') == true) {
-      //console.log(evt.target.connectedEdges().style('width'));
       evt.target.connectedEdges().style({
         'line-color': 'grey',
         'target-arrow-color': 'grey',
@@ -336,33 +304,6 @@ function getPersonsBySharedNodes(cy) {
       }
     }
   }
-
-  //permArr = permutator(personsIdArr);
-
-  let someNumber;
-
-  // for (let i = 0; i < permArr.length; i++) {
-  //   curCount = 0;
-
-  //   nodeObj = convertNodeArrToObj(cy, permArr[i]);
-
-  //   for (let j = 0; j < permArr[i].length; j++) {
-  //     nodeObj[permArr[i][j]].index = j;
-  //   }
-
-  //   for (let j = 0; j < permArr[i].length; j++) {
-  //     for (let k = 0; k < nodeObj[permArr[i][j]].attached.length; k++) {
-  //       curCount += Math.abs(
-  //         nodeObj[permArr[i][j]].index - nodeObj[nodeObj[permArr[i][j]].attached[k]].index
-  //       );
-  //     }
-  //   }
-  //   if (curCount < minCount) {
-  //     minCount = curCount;
-  //     maxList = permArr[i];
-  //   }
-  // }
-  //console.log(`${orderedPersons}`);
   let maxTempCount;
 
   for (let k = 0; k < personsIdArr.length; k++) {
@@ -373,7 +314,6 @@ function getPersonsBySharedNodes(cy) {
       let maxId;
       let maxIdCount = 0;
       for (let j = 0; j < personsIdArr.length; j++) {
-        //console.log(fastList[i], personsIdArr[j]);
         if (
           fastList[i] != undefined &&
           personsIdArr[i] != undefined &&
@@ -393,19 +333,6 @@ function getPersonsBySharedNodes(cy) {
     }
     fastList = [];
   }
-
-  //console.log(`here ${fastList}`);
-
-  // for (let i = 0; i < permArr.length; i++) {
-  //   curCount = 0;
-  //   for (let j = 0; j < permArr[i].length - 1; j++) {
-  //     curCount += orderedPersons[permArr[i][j]][permArr[i][j + 1]];
-  //   }
-  //   if (curCount > maxCount) {
-  //     maxCount = curCount;
-  //     maxList = permArr[i];
-  //   }
-  // }
   return maxList;
 }
 
@@ -447,7 +374,6 @@ function getEventsFromPerson(cy, personId) {
       setEdgesTaxi(children[i].connectedEdges());
     } else {
       if (children[i].data('_taxiSet') != 'true') {
-        //setEdgesTaxi(person.edgesWith(`node[id = "${children[i].id()}" ]`));
         children[i].data('_taxiSet', 'true');
       }
       events.shared.push(children[i]);
@@ -501,7 +427,6 @@ function setEvents(cy, events, options, start) {
     xMax[0] = Math.max(xMax[0], events[i].position('x'));
     xMax[1] = Math.min(xMax[1], events[i].position('y'));
   }
-  //console.log(xMax);
   return xMax;
 }
 
@@ -574,7 +499,6 @@ function getPersonWidth(node, parents) {
   let childParents = nodeListToArray(
     node.connectedEdges().connectedNodes(`node[type = "person"][id != "${node.id()}"]`)
   );
-  //return node.connectedEdges().connectedNodes(`node[type = "person"][id != "${node.id()}"]`).length;
 
   let min = 1000,
     max = -1;
@@ -585,19 +509,14 @@ function getPersonWidth(node, parents) {
       max = Math.max(max, j);
     }
   }
-  //console.log(max - min, childParents.length);
   return (max - min) / childParents.length;
 }
 
 function isConflict(a, b) {
-  //console.log(`comparing ${a} with ${b}`);
   if (a[0] < 0 || b[0] < 0) return false;
   for (let i = 0; i < a.length; i++) {
     for (let j = 0; j < b.length - 1; j++) {
-      //console.log(`comparing part ${a[i]},${a[i + 1]} with ${b[j]},${b[j + 1]}`);
       if (a[i] > b[j] && a[i] < b[j + 1]) return true;
-      //if (b[j] <= a[i] && b[j + 1] > a[i] && b[j + 1] < a[i + 1]) return true;
-      //else if (a[i] < b[j] && a[i + 1] > b[j] && a[i + 1] < b[j + 1]) return true;
     }
   }
   return false;
@@ -608,7 +527,6 @@ function possibleIncreaseLevel(a, b) {
 }
 
 function increaseLevel(a, b) {
-  //console.log(`inc level? checking ${a} with ${b}`);
   if (a[0] < 0 && b[0] < 0) return false;
   let increase = false;
   for (let i = 0; i < a.length - 1; i++) {
@@ -620,8 +538,6 @@ function increaseLevel(a, b) {
 }
 
 function findLevelUp(levels, defLevel) {
-  //console.log(`finding level up of yahoo ${levels}`);
-
   if (levels.length == 0) return defLevel + 1;
 
   levels.sort((a, b) => a - b);
@@ -647,25 +563,8 @@ function checkLineStyle(nodeLevel, curIndex, foundSim) {
         return true;
       }
       if (possibleIncreaseLevel(nodeLevel[curIndex.key][curIndex.index].range, nodeLevel[i][j].range)) {
-        // if (isConflict(nodeLevel[curIndex.key][curIndex.index].range, nodeLevel[i][j].range)) {
-        //   // console.log(
-        //   //   `${nodeLevel[curIndex.key][curIndex.index].range} conflicts with ${nodeLevel[i][j].range}`
-        //   // );
-        //   setEdgeBez(nodeLevel[curIndex.key][curIndex.index].node.connectedEdges());
-        //   nodeLevel[curIndex.key][curIndex.index].range = [-2, -1];
-        //   nodeLevel[curIndex.key][curIndex.index].conflict = true;
-        //   return false;
-        // }
-
         nodeLevel[curIndex.key][curIndex.index].possibleLevelUps.push(nodeLevel[i][j].level);
-        // console.log(
-        //   `yahoo, ${nodeLevel[curIndex.key][curIndex.index].range} levels with ${
-        //     nodeLevel[i][j].range
-        //   } possi: ${nodeLevel[curIndex.key][curIndex.index].possibleLevelUps}`
-        // );
       } else if (increaseLevel(nodeLevel[curIndex.key][curIndex.index].range, nodeLevel[i][j].range)) {
-        //console.log(`${nodeLevel[curIndex.key][curIndex.index].range} levels with ${nodeLevel[i][j].range}`);
-
         if (nodeLevel[curIndex.key][curIndex.index].level < nodeLevel[i][j].level) {
           nodeLevel[curIndex.key][curIndex.index].possibleLevelUp = nodeLevel[i][j].level;
         }
@@ -676,19 +575,6 @@ function checkLineStyle(nodeLevel, curIndex, foundSim) {
           nodeLevel[i][j].level
         );
         let max = Math.max(...nodeLevel[curIndex.key][curIndex.index].possibleLevelUps);
-
-        // nodeLevel[curIndex.key][curIndex.index].level = Math.max(
-        //   nodeLevel[curIndex.key][curIndex.index].level,
-        //   max
-        // );
-
-        //console.log('level:', nodeLevel[curIndex.key][curIndex.index].level);
-        // console.log(`
-        //   yahoo bb,
-        //   ${nodeLevel[curIndex.key][curIndex.index].range}
-        //   ${nodeLevel[curIndex.key][curIndex.index].level}
-        //   max of ${nodeLevel[curIndex.key][curIndex.index].possibleLevelUps} is ${max}
-        // `);
       }
     }
   }
@@ -702,9 +588,6 @@ function checkLineStyleConflicted(nodeLevel, curIndex) {
       if (i == curIndex.key && j == curIndex.index) return conflicted;
 
       if (isConflict(nodeLevel[curIndex.key][curIndex.index].range, nodeLevel[i][j].range)) {
-        // console.log(
-        //   `${nodeLevel[curIndex.key][curIndex.index].range} conflicts with ${nodeLevel[i][j].range}`
-        // );
         setEdgeBez(nodeLevel[curIndex.key][curIndex.index].node.connectedEdges());
         nodeLevel[curIndex.key][curIndex.index].range = [-2, -1];
         return true;
@@ -721,12 +604,9 @@ function setSharedNodes(cy, parents, nodes, yMax) {
     identifierMaxY: new Array(parents.length).fill(0),
   };
   for (let i = 0; i < persons.idList.length; i++) {
-    //console.log(persons.idList[i]);
     persons[persons.idList[i]] = {};
     persons[persons.idList[i]].maxlevel = 1;
   }
-  //console.log('op', persons);
-
   let nodeLevel = {};
 
   nodes = nodes.sort((a, b) => {
@@ -740,9 +620,6 @@ function setSharedNodes(cy, parents, nodes, yMax) {
     }
   }
   nodes = tempNodes;
-
-  //for (let i = 0; i < nodes.length; i++)
-  //console.log(nodes[i].id(), getPersonWidthIndexs(nodes[i], parents), getPersonWidth(nodes[i], parents));
 
   for (let j = 0; j < nodes.length; j++) {
     if (nodeLevel[0] == undefined) {
@@ -765,10 +642,8 @@ function setSharedNodes(cy, parents, nodes, yMax) {
   for (const i in nodeLevel) {
     count++;
     for (let j = 0; j < nodeLevel[i].length; j++) {
-      //console.log(nodeLevel[i][j].range);
       increase = checkLineStyleConflicted(nodeLevel, { key: i, index: j });
       if (increase) conflictCount++;
-      //console.log(increase);
 
       let childParents = nodeListToArray(
         nodeLevel[i][j].node
@@ -777,7 +652,6 @@ function setSharedNodes(cy, parents, nodes, yMax) {
       );
 
       let placementParent = findPlacementParent(persons.idList, childParents);
-      //console.log(persons[placementParent]);
 
       if (increase) {
         nodeLevel[i][j].node.position({
@@ -788,10 +662,6 @@ function setSharedNodes(cy, parents, nodes, yMax) {
       }
     }
   }
-  // console.log(`Number of conflicts ${conflictCount / nodes.length}`);
-  //console.log('hit');
-  //cy.remove('node');
-  //return conflictCount / nodes.length;
 
   let simRangeObj = {};
 
@@ -801,30 +671,19 @@ function setSharedNodes(cy, parents, nodes, yMax) {
     for (let j = 0; j < nodeLevel[i].length; j++) {
       let foundSim = { hit: false };
 
-      //console.log(nodeLevel[i][j]);
       increase = checkLineStyle(nodeLevel, { key: i, index: j }, foundSim);
-      //console.log(`init level of  ${nodeLevel[i][j].range} is ${nodeLevel[i][j].level}`);
 
       if (foundSim.hit != false) {
         foundSim = foundSim.level.join('');
         simRangeObj[foundSim] = simRangeObj[foundSim] == undefined ? 1 : simRangeObj[foundSim] + 1;
         foundSimCount = simRangeObj[foundSim];
-        //console.log('weewoo');
       }
       if (increase || (nodeLevel[i][j].possibleLevelUps.length > 0 && !nodeLevel[i][j].conflict)) {
-        //if (nodeLevel[i][j].possibleLevelUps.length > 0 && !nodeLevel[i][j].conflict) {
         if (!increase && nodeLevel[i][j].level == 1 && nodeLevel[i][j].possibleLevelUps[0] > 1) {
-          //if (nodeLevel[i][j].level == 1 && nodeLevel[i][j].possibleLevelUps[0] > 1) {
-          //console.log(`special ${nodeLevel[i][j].range}`);
         } else {
-          // nodeLevel[i][j].possibleLevelUps.push(nodeLevel[i][j].level);
-
-          //console.log(`checking level of  ${nodeLevel[i][j].range}`);
-
           nodeLevel[i][j].level = findLevelUp(nodeLevel[i][j].possibleLevelUps, nodeLevel[i][j].level);
         }
       }
-      //console.log(increase);
 
       let childParents = nodeListToArray(
         nodeLevel[i][j].node
@@ -835,7 +694,6 @@ function setSharedNodes(cy, parents, nodes, yMax) {
       let placementParent = findPlacementParent(persons.idList, childParents);
 
       if (nodeLevel[i][j].node.connectedEdges().style('curve-style') != 'segments') {
-        //console.log(`inserting ${nodeLevel[i][j].range} at ${nodeLevel[i][j].level}`);
         nodeLevel[i][j].node.position({
           x: cy.nodes(`node[id = "${placementParent}"]`).position('x') + 150 + foundSimCount * 75,
           y: nodeLevel[i][j].level * -150 + maxConflictLevel * -150,
@@ -851,8 +709,6 @@ function setSharedNodes(cy, parents, nodes, yMax) {
 export default function layoutB(cy) {
   setEdgesTaxi(cy.edges());
   let persons = getPersonsBySharedNodes(cy);
-  //let persons = nodeListToArray(cy.elements('node[type = "person"]'));
-  //console.log('these are persons ', persons);
 
   let events, identifiers, parent;
   colorCode(cy);
@@ -875,9 +731,6 @@ export default function layoutB(cy) {
     yMax = Math.min(prevMax[1], yMax);
 
     parent.position({ x: prevMax[0], y: 0 });
-    //console.log('hit', prevMax[0]);
-
-    //console.log('hit');
 
     if (events.unique.length > 0) {
       prevMax = setEvents(cy, events.unique, options, { x: prevMax[0], y: 0 });
@@ -886,7 +739,6 @@ export default function layoutB(cy) {
     prevMax[0] += 150;
     yMax = Math.min(prevMax[1], yMax);
   }
-  //console.log('boop', yMax);
 
   return setSharedNodes(
     cy,
