@@ -23,7 +23,6 @@ function enlargePersons() {
 }
 
 function lineDistance(a, b) {
-  console.log(b);
   return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
 }
 
@@ -44,34 +43,19 @@ function calculateSegDistance(edge, targetPoint, min) {
 
   targetPoint.x += sign * 300;
 
-  console.log('here', startPoint, endPoint, targetPoint);
-
   let mainSlope = (startPoint.y - endPoint.y) / (startPoint.x - endPoint.x);
   let intersectSlope = -(1 / mainSlope);
   let mainB = endPoint.y - mainSlope * endPoint.x;
-
-  console.log('here main line', 'slope', mainSlope, 'b', mainB);
 
   let intersectB = targetPoint.y - intersectSlope * targetPoint.x;
 
   let intersectX = (intersectB - mainB) / (mainSlope - intersectSlope);
   let intersectY = intersectSlope * intersectX + intersectB;
 
-  console.log('here second  line', 'slope', intersectSlope, 'b', intersectB);
-
-  console.log('hereh', intersectX, intersectY);
-
   let distance = lineDistance({ x: targetPoint.x, y: targetPoint.y }, { x: intersectX, y: intersectY });
-  console.log(
-    'here distance',
-    { x: targetPoint.x, y: targetPoint.y },
-    { x: intersectX, y: intersectY },
-    distance
-  );
+
   let weight =
     lineDistance(startPoint, { x: intersectX, y: intersectY }) / lineDistance(startPoint, endPoint);
-
-  console.log('hit');
 
   sign = -getDir(targetPoint.y, intersectY) * sign;
 
@@ -81,48 +65,12 @@ function calculateSegDistance(edge, targetPoint, min) {
   });
 }
 
-function setControlPoints(edge) {
-  let startPoint = edge.source().position();
-  let endPoint = edge.target().position();
-
-  let mainSlope = (startPoint.y - endPoint.y) / (startPoint.x - endPoint.x);
-  let intersectSlope = -(1 / mainSlope);
-  let mainB = endPoint.y - mainSlope * endPoint.x;
-  let intersectB = endPoint.y - intersectSlope * startPoint.x;
-  let intersectX = (intersectB - mainB) / (mainSlope - intersectSlope);
-  let intersectY = intersectSlope * intersectX + intersectB;
-
-  if (startPoint.x == endPoint.x) {
-    edge.style({
-      'curve-style': 'straight',
-    });
-    return;
-  }
-
-  let sign = getSign(startPoint.x, endPoint.x);
-
-  let weight =
-    lineDistance(startPoint, { x: intersectX, y: intersectY }) / lineDistance(startPoint, endPoint);
-
-  console.log(weight);
-  let distance = sign * lineDistance({ x: startPoint.x, y: endPoint.y }, { x: intersectX, y: intersectY });
-  let distance2 = lineDistance(startPoint, endPoint);
-
-  console.log(distance, weight);
-  let min = Math.min(weight, 1 - weight);
-  let max = 1 - min;
-
-  console.log('ree', startPoint, endPoint);
-  console.log('ree');
-}
-
 function setPoints(sameX) {
   for (const key in sameX) {
     let nodes = sameX[key].nodes;
     let parent = sameX[key].parent;
     let minYval = -Infinity;
     if (nodes.length < 2) continue;
-    console.log('jjj looking at key:', key);
     for (let i = 0; i < nodes.length; i++) {
       if (nodes[i].position('y') > minYval) {
         minYval = nodes[i].position('y');
@@ -130,7 +78,6 @@ function setPoints(sameX) {
     }
 
     if (minYval != -Infinity && nodes.length > 1) {
-      console.log('here', '----------');
       for (let i = 0; i < nodes.length; i++) {
         let edges = parent.connectedEdges(`edge[type = "bez"]`);
 
@@ -164,7 +111,6 @@ function configBezEdges(cy, parents) {
         sameX[targetNodes[j].position('x')].nodes.push(targetNodes[j]);
       }
     }
-    console.log('jjj', sameX);
     setPoints(sameX);
   }
 }
