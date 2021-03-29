@@ -1,13 +1,9 @@
 import cytoscape from 'cytoscape';
 import nodeText from './testData0.txt';
 
-import { register as htmlnode } from 'cytoscape-html-node';
-import { register as trilayer } from './index.js';
+//import { register as trilayer } from './index.js';
+import { register as trilayer } from '../dist/main.bundle.js';
 
-var nodeHtmlLabel = require('cytoscape-node-html-label');
-
-cytoscape.use(htmlnode);
-nodeHtmlLabel(cytoscape);
 cytoscape.use(trilayer);
 
 document.addEventListener('DOMContentLoaded', function () {
