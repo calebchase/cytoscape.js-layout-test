@@ -11,17 +11,17 @@ function randomFromArray(arr) {
 
 options = {
   event: {
-    count: 10,
+    count: 7,
   },
   person: {
-    rangePerNode: [3, 10],
-    sharedRange: [1, 2],
-    sharedPercent: 0.2,
+    rangePerNode: [10, 20],
+    sharedRange: [1, 3],
+    sharedPercent: 0.3,
   },
   identifier: {
-    rangePerNode: [2, 3],
-    sharedRange: [1, 2],
-    sharedPercent: 0.2,
+    rangePerNode: [10, 20],
+    sharedRange: [1, 3],
+    sharedPercent: 0.3,
   },
 };
 
@@ -130,8 +130,14 @@ function generateElements(options) {
   return eles;
 }
 
-let elements = generateElements(options);
+for (let i = 0; i < 1; i++) {
+  let elements = generateElements(options);
 
-fs.writeFile('../src/node.txt', JSON.stringify(elements), function (err) {
-  if (err) return console.log(err);
-});
+  fs.writeFile(`../src/testData${i}.txt`, JSON.stringify(elements), function (err) {
+    if (err) return console.log(err);
+  });
+}
+
+// fs.writeFile('../src/node.txt', JSON.stringify(elements), function (err) {
+//   if (err) return console.log(err);
+// });

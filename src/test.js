@@ -1,8 +1,8 @@
 console.log('Hello, World!');
 
 import cytoscape from 'cytoscape';
-import nodeText from './node.txt';
-import nodeText2 from './node2.txt';
+import nodeText from './testData0.txt';
+
 import fcose from 'cytoscape-fcose';
 import euler from 'cytoscape-euler';
 import layoutB from './layoutB';
@@ -11,6 +11,8 @@ import avsdf from 'cytoscape-avsdf';
 
 import { register as htmlnode } from 'cytoscape-html-node';
 var nodeHtmlLabel = require('cytoscape-node-html-label');
+
+let testDataArr = [];
 
 // register extensions
 cytoscape.use(htmlnode);
@@ -108,8 +110,40 @@ document.addEventListener('DOMContentLoaded', function () {
 
   document.getElementById('layout').onclick = () => {
     console.log('Running layoutB');
+
+    let avg = 0;
+
     cy.add(JSON.parse(nodeText));
-    layoutB(cy);
+    avg += layoutB(cy);
+
+    // cy.add(JSON.parse(testText1));
+    // avg += layoutB(cy);
+
+    // cy.add(JSON.parse(testText2));
+    // avg += layoutB(cy);
+
+    // cy.add(JSON.parse(testText3));
+    // avg += layoutB(cy);
+
+    // cy.add(JSON.parse(testText4));
+    // avg += layoutB(cy);
+
+    // cy.add(JSON.parse(testText5));
+    // avg += layoutB(cy);
+
+    // cy.add(JSON.parse(testText6));
+    // avg += layoutB(cy);
+
+    // cy.add(JSON.parse(testText7));
+    // avg += layoutB(cy);
+
+    // cy.add(JSON.parse(testText8));
+    // avg += layoutB(cy);
+
+    // cy.add(JSON.parse(testText9));
+    // avg += layoutB(cy);
+
+    // console.log('trials', avg / 10);
   };
 
   const htmlnode = cy.htmlnode();
