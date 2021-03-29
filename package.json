@@ -1,11 +1,13 @@
 {
-  "name": "cytoscape-layout-test",
+  "name": "cytoscape-tri-layer",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "webpack serve --config webpack.config.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --mode development --config webpack.config.js",
+    "build:release": "webpack --mode production --config webpack.config.js"
   },
   "author": "",
   "license": "ISC",
@@ -18,7 +20,7 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
-    "cytoscape": "^3.17.0",
+    "cytoscape": "^3.18.1",
     "cytoscape-avsdf": "^1.0.0",
     "cytoscape-euler": "^1.2.2",
     "cytoscape-fcose": "^1.2.3",
