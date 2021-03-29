@@ -2,7 +2,7 @@
 
 ## Description
 
-- via direct download
+- TODO
 
 ## Dependencies
 
