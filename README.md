@@ -1,8 +1,8 @@
-# cytoscape-tri-layer
+# cytoscape-trilayer
 
 ## Description
 
-- TODO
+Trilayer is a specialized layout for a relatively small set of parent nodes and a relatively large set of children nodes. The children nodes are categorized into two types and are able to have multiple parents.
 
 ## Dependencies
 
@@ -10,29 +10,49 @@
 
 ## Usage instructions
 
-- Download the library:
-- via npm: `npm install cytoscape-tri-layer`
+Download the library:
+
+- via npm: `npm install cytoscape-trilayer`
+- via direct download in the repository
 
 ES import:
 
 ```js
 import cytoscape from 'cytoscape';
-cytoscape.use(trilayer);
+import { register as trilayer } from 'cytoscape-trilayer';
 
-import { register as trilayer } from './index.js';
+cytoscape.use(trilayer);
+```
+
+CommonJS:
+
+```js
+let cytoscape = require('cytoscape');
+let trilayer = require('cytoscape-trilayer');
+
+cytoscape.use(trilayer);
+```
+
+AMD:
+
+```js
+require(['cytoscape', 'cytoscape-trilayer'], function (cytoscape, trilayer) {
+  trilayer(cytoscape);
+});
 ```
 
 ## API
 
-```js
-let cy = cytoscape({ ... });
+Specify an options object with `name: 'trilayer'` to run the layout. All other fields are optional. An example with the default options follows:
 
+```js
 let options = {
+  name: 'trilayer',
   horizontalNodeOffset: 150,
   verticalNodeOffset: 150,
   parentToChildSpacing: 150,
 
-  // offset for shared nodes that are placed on the same level in taxi section
+  // Offset for shared nodes that are placed on the same level in taxi section of graph
   horizontalSharedOffset: 75,
 
   // Querey can be any cytoscape query
@@ -41,5 +61,5 @@ let options = {
   childBQuery: 'node[type = "event"]',
 };
 
-cy.trilayer(options);
+cy.layout(options).run();
 ```
