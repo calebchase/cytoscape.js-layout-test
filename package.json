@@ -1,15 +1,32 @@
 {
   "name": "cytoscape-trilayer",
   "version": "1.0.0",
-  "description": "",
   "main": "dist/main.bundle.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/calebchase/cytoscape.js-trilayer.git"
+  },
   "scripts": {
     "start": "webpack serve --config webpack.config.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --mode development --config webpack.config.js",
     "build:release": "webpack --mode production --config webpack.config.js"
   },
-  "author": "",
+  "author": {
+    "name": "VARLAB - University of Central Florida",
+    "url": "https://cs.ucf.edu"
+  },
+  "contributors": [
+    {
+      "name": "Caleb Chase"
+    }
+  ],
+  "keywords": [
+    "cytoscape",
+    "extension",
+    "layout",
+    "trilayer"
+  ],
   "license": "ISC",
   "devDependencies": {
     "prettier": "^2.1.2",
@@ -20,11 +37,6 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
-    "cytoscape": "^3.18.1",
-    "cytoscape-avsdf": "^1.0.0",
-    "cytoscape-euler": "^1.2.2",
-    "cytoscape-fcose": "^1.2.3",
-    "cytoscape-html-node": "^1.0.5",
-    "cytoscape-node-html-label": "^1.2.1"
+    "cytoscape": "^3.18.1"
   }
 }
