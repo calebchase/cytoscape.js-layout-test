@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "cytoscape": "^3.18.1"
+    "cytoscape": "^3.18.1",
+    "cytoscape-trilayer": "file:.."
   }
 }
