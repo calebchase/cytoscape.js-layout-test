@@ -2,6 +2,7 @@
   "name": "cytoscape-trilayer",
   "version": "1.0.0",
   "main": "dist/main.bundle.js",
+  "description": "Trilayer is a specialized layout for graphs with a small set of parent nodes and a large set of children nodes.",
   "repository": {
     "type": "git",
     "url": "https://github.com/calebchase/cytoscape.js-trilayer.git"

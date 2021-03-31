@@ -2,7 +2,7 @@
 
 ## Description
 
-Trilayer is a specialized layout for a relatively small set of parent nodes and a relatively large set of children nodes. The children nodes are categorized into two types and are able to have multiple parents.
+Trilayer is a specialized layout for graphs with a small set of parent nodes and a large set of children nodes. The children nodes are categorized into two types and are able to have multiple parents.
 
 ## Dependencies
 
