@@ -1,23 +1,10 @@
 import configSegEdges from './simpleEdgeBund.js';
 
-function colorCode(cy) {
-  cy.style().selector('node[type = "event"]').style('background-color', 'darkred').update();
-  cy.style().selector('node[type = "person"]').style('background-color', 'darkgreen').update();
-  cy.style().selector('node[type = "identifier"]').style('background-color', 'darkblue').update();
-}
-
 function resetData(cy) {
   let nodes = cy.elements('node[_used = "true"]');
   for (let i = 0; i < nodes.length; i++) {
     nodes[i].data('_used', 'false');
   }
-}
-
-function enlargePersons() {
-  cy.nodes('node[type = "person"]').style({
-    width: 70,
-    height: 70,
-  });
 }
 
 function setEdgeSegment(edge) {
@@ -41,28 +28,6 @@ function setEdgesTaxi(edge) {
 
 function hasOneParent(node) {
   return node.connectedEdges().length == 1;
-}
-
-function highlightConnectedEdges(selector, color) {
-  cy.on('tap', selector, function (evt) {
-    if (evt.target.data('layEdgeOn') == true) {
-      evt.target.connectedEdges().style({
-        'line-color': 'grey',
-        'target-arrow-color': 'grey',
-        'z-index': 0,
-        width: '3px',
-      });
-      evt.target.data('layEdgeOn', false);
-    } else {
-      evt.target.connectedEdges().style({
-        'line-color': color,
-        'target-arrow-color': color,
-        'z-index': 1,
-        width: '5x',
-      });
-      evt.target.data('layEdgeOn', true);
-    }
-  });
 }
 
 function getNumOfSharedNodes(nodeA, nodeB) {
@@ -428,19 +393,7 @@ function setSharedNodes(cy, parents, nodes, options) {
   configSegEdges(cy, parents, nodes);
 }
 
-export function runTriLayer(options) {
-  let defaults = {
-    horizontalNodeOffset: 150,
-    verticalNodeOffset: 150,
-    parentToChildSpacing: 150,
-    horizontalSharedOffset: 75,
-    parentQuery: 'node[type = "person"]',
-    childAQuery: 'node[type = "identifier"]',
-    childBQuery: 'node[type = "event"]',
-  };
-
-  options = { ...defaults, ...options };
-
+function runTriLayer(options, cy) {
   resetData(cy);
 
   let persons = getPersonsBySharedNodes(cy, options);
@@ -479,3 +432,24 @@ export function runTriLayer(options) {
     options
   );
 }
+
+function Layout(options) {
+  let defaults = {
+    horizontalNodeOffset: 150,
+    verticalNodeOffset: 150,
+    parentToChildSpacing: 150,
+    horizontalSharedOffset: 75,
+    parentQuery: 'node[type = "person"]',
+    childAQuery: 'node[type = "identifier"]',
+    childBQuery: 'node[type = "event"]',
+  };
+
+  this.cy = options.cy;
+  this.options = { ...defaults, ...options };
+}
+
+Layout.prototype.run = function () {
+  runTriLayer(this.options, this.cy);
+};
+
+export { Layout };

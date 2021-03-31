@@ -1,11 +1,11 @@
-import { runTriLayer } from './runTriLayer.js';
+import { Layout } from './runTriLayer.js';
 
 function register(cytoscape) {
   if (!cytoscape) {
     console.warn('Attempt to register cytoscape-layoutB with invalid cytoscape instance!');
     return;
   }
-  cytoscape('core', 'trilayer', runTriLayer);
+  cytoscape('layout', 'trilayer', Layout);
 }
 
 // auto-register if there is global cytoscape (i.e. window.cytoscape)
