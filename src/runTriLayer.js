@@ -1,10 +1,53 @@
 import configSegEdges from './simpleEdgeBund.js';
 
+var startTime;
+
+function start() {
+  startTime = new Date();
+}
+
+function end() {
+  let endTime = new Date();
+  var timeDiff = endTime - startTime; //in ms
+
+  var seconds = Math.round(timeDiff);
+  console.log(seconds + ' seconds');
+}
+
 function resetData(cy) {
   let nodes = cy.elements('node[_used = "true"]');
   for (let i = 0; i < nodes.length; i++) {
     nodes[i].data('_used', 'false');
+    nodes[i].data('_taxiSet', 'false');
   }
+}
+
+function setPriority(parents, percent) {
+  for (let i = 0; i < parents.length; i++) {
+    if (Math.random() > percent) {
+      let node = parents[i];
+      node.data('priority', Math.random());
+    }
+  }
+}
+
+function getParentsByPriority(parents, options) {
+  let priorityParents = [];
+  let nonPriorityParents = [];
+
+  let count = 0;
+
+  for (let parent of parents) {
+    if (parent.data('priority') != undefined) {
+      priorityParents.push(parent);
+      parent.style('background-color', 'lightgreen');
+      count++;
+    } else {
+      nonPriorityParents.push(parent);
+    }
+    priorityParents.sort(options.priorityFunction);
+  }
+  return { priority: priorityParents, nonPriority: nonPriorityParents };
 }
 
 function setEdgeSegment(edge) {
@@ -49,11 +92,20 @@ function arraysEqual(a, b) {
 
 function getPersonsBySharedNodes(cy, options) {
   let persons = cy.elements(options.parentQuery);
+
   let personsIdArr = [];
   let maxList = [];
   let fastList = [];
   let maxCount = -1;
   let orderedPersons = {};
+
+  let arrayList = [];
+
+  //setPriority(persons, 0.5);
+
+  let personsPrioritySort = getParentsByPriority(persons, options);
+  let priorityParents = personsPrioritySort.priority;
+  persons = personsPrioritySort.nonPriority;
 
   for (let i = 0; i < persons.length; i++) {
     personsIdArr.push(persons[i].id());
@@ -68,15 +120,18 @@ function getPersonsBySharedNodes(cy, options) {
   let maxTempCount;
 
   for (let k = 0; k < personsIdArr.length; k++) {
+    fastList = [];
     fastList.push(personsIdArr[k]);
     maxTempCount = 0;
-    for (let i = 0; i < personsIdArr.length; i++) {
+
+    for (let i = 0; i < personsIdArr.length - 1; i++) {
       let maxId;
       let maxIdCount = 0;
-      for (let j = 0; j < personsIdArr.length; j++) {
+
+      for (let j = 0; j < personsIdArr.length - 1; j++) {
         if (
-          fastList[i] != undefined &&
-          personsIdArr[i] != undefined &&
+          fastList[i] &&
+          personsIdArr[i] &&
           orderedPersons[fastList[i]][personsIdArr[j]] > maxIdCount &&
           !fastList.includes(personsIdArr[j])
         ) {
@@ -84,16 +139,51 @@ function getPersonsBySharedNodes(cy, options) {
           maxId = personsIdArr[j];
         }
       }
-      fastList.push(maxId);
+      if (maxId) fastList.push(maxId);
       maxTempCount += maxIdCount;
     }
+    arrayList.push(fastList);
+
     if (maxTempCount > maxCount) {
       maxCount = maxTempCount;
       maxList = fastList;
     }
-    fastList = [];
+
+    for (let j = 0; j < personsIdArr.length; j++) {
+      if (!fastList.includes(personsIdArr[j])) {
+        fastList.push(personsIdArr[j]);
+      }
+    }
   }
-  return maxList;
+
+  let finalPersonList = [];
+  for (let i = 0; i < priorityParents.length; i++) {
+    finalPersonList.push(priorityParents[i].id());
+  }
+
+  let asdfddsa;
+  let minConflictCount = Infinity;
+
+  for (let i = 0; i < arrayList.length; i++) {
+    let conflictCount;
+    let tempPersonList = finalPersonList.concat(arrayList[i]);
+
+    conflictCount = getConflictedCount(
+      cy,
+      tempPersonList,
+      cy.nodes(`${options.childAQuery}[_used != "true"], ${options.childBQuery}[_used != "true"]`),
+      options
+    );
+
+    console.log(conflictCount);
+    if (conflictCount < minConflictCount) {
+      minConflictCount = conflictCount;
+      asdfddsa = tempPersonList;
+    }
+  }
+
+  finalPersonList = finalPersonList.concat(maxList);
+  return asdfddsa;
 }
 
 function getChildrenFromPerson(cy, personId, query) {
@@ -263,20 +353,84 @@ function checkLineStyle(nodeLevel, curIndex, foundSim) {
   return increase;
 }
 
-function checkLineStyleConflicted(nodeLevel, curIndex) {
+function checkLineStyleConflicted(nodeLevel, curIndex, dontSetEdge) {
   let conflicted = false;
   for (const i in nodeLevel) {
     for (let j = 0; j < nodeLevel[i].length; j++) {
       if (i == curIndex.key && j == curIndex.index) return conflicted;
 
       if (isConflict(nodeLevel[curIndex.key][curIndex.index].range, nodeLevel[i][j].range)) {
-        setEdgeSegment(nodeLevel[curIndex.key][curIndex.index].node.connectedEdges());
+        if (!dontSetEdge) setEdgeSegment(nodeLevel[curIndex.key][curIndex.index].node.connectedEdges());
         nodeLevel[curIndex.key][curIndex.index].range = [-2, -1];
         return true;
       }
     }
   }
   return conflicted;
+}
+
+function getConflictedCount(cy, parents, nodes, options) {
+  let persons = {
+    idList: parents,
+    eventMaxY: new Array(parents.length).fill(0),
+    identifierMaxY: new Array(parents.length).fill(0),
+  };
+
+  for (let i = 0; i < persons.idList.length; i++) {
+    persons[persons.idList[i]] = {};
+    persons[persons.idList[i]].maxlevel = 1;
+  }
+  let nodeLevel = {};
+
+  nodes = nodes.sort((a, b) => {
+    return getPersonWidth(a, parents, options) < getPersonWidth(b, parents, options) ? -1 : 1;
+  });
+
+  let tempNodes = [];
+  for (let i = 0; i < nodes.length; i++) {
+    if (getPersonWidthIndexs(nodes[i], parents, options).length > 1) {
+      tempNodes.push(nodes[i]);
+    }
+  }
+  nodes = tempNodes;
+
+  for (let j = 0; j < nodes.length; j++) {
+    if (nodeLevel[0] == undefined) {
+      nodeLevel[0] = [];
+    }
+    nodeLevel[0].push({
+      node: nodes[j],
+      range: getPersonWidthIndexs(nodes[j], parents, options).sort((a, b) => a - b),
+      level: 1,
+      conflict: false,
+      possibleLevelUps: [],
+    });
+  }
+
+  let increase = false;
+  let count = 0;
+  let maxConflictLevel = 0;
+
+  for (const i in nodeLevel) {
+    for (let j = 0; j < nodeLevel[i].length; j++) {
+      increase = checkLineStyleConflicted(nodeLevel, { key: i, index: j }, true);
+
+      let childParents = nodeListToArray(
+        nodeLevel[i][j].node
+          .connectedEdges()
+          .connectedNodes(`${options.parentQuery}[id != "${nodeLevel[i][j].node.id()}"]`)
+      );
+
+      let placementParent = findPlacementParent(persons.idList, childParents);
+
+      if (increase) {
+        count++;
+
+        maxConflictLevel = Math.max(maxConflictLevel, persons[placementParent].maxlevel);
+      }
+    }
+  }
+  return count;
 }
 
 function setSharedNodes(cy, parents, nodes, options) {
@@ -321,7 +475,6 @@ function setSharedNodes(cy, parents, nodes, options) {
   let maxConflictLevel = 0;
 
   for (const i in nodeLevel) {
-    count++;
     for (let j = 0; j < nodeLevel[i].length; j++) {
       increase = checkLineStyleConflicted(nodeLevel, { key: i, index: j });
 
@@ -334,6 +487,8 @@ function setSharedNodes(cy, parents, nodes, options) {
       let placementParent = findPlacementParent(persons.idList, childParents);
 
       if (increase) {
+        count++;
+
         nodeLevel[i][j].node.position({
           x: cy.nodes(`node[id = "${placementParent}"]`).position('x'),
           y:
@@ -394,6 +549,7 @@ function setSharedNodes(cy, parents, nodes, options) {
 }
 
 function runTriLayer(options, cy) {
+  start();
   resetData(cy);
 
   let persons = getPersonsBySharedNodes(cy, options);
@@ -431,6 +587,8 @@ function runTriLayer(options, cy) {
     cy.nodes(`${options.childAQuery}[_used != "true"], ${options.childBQuery}[_used != "true"]`),
     options
   );
+
+  end();
 }
 
 function Layout(options) {
@@ -442,6 +600,8 @@ function Layout(options) {
     parentQuery: 'node[type = "person"]',
     childAQuery: 'node[type = "identifier"]',
     childBQuery: 'node[type = "event"]',
+    parentPriority: 'priority',
+    priorityFunction: (a, b) => a.data('priority') - b.data('priority'),
   };
 
   this.cy = options.cy;

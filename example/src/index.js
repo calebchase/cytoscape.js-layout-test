@@ -1,9 +1,10 @@
 import cytoscape from 'cytoscape';
 import exampleData from './testData0.txt';
 
-import { register as trilayer } from '../../dist/main.bundle.js';
+// import { register as trilayer } from '../../dist/main.bundle.js';
 // Or use the following import in your own project:
 // import { register as trilayer } from 'cytoscape-trilayer';
+import { register as trilayer } from '../../src/index.js';
 
 cytoscape.use(trilayer);
 

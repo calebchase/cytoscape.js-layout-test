@@ -14,14 +14,14 @@ options = {
     count: 7,
   },
   person: {
-    rangePerNode: [7, 15],
-    sharedRange: [1, 2],
-    sharedPercent: 0.3,
+    rangePerNode: [7, 20],
+    sharedRange: [1, 3],
+    sharedPercent: 0.4,
   },
   identifier: {
-    rangePerNode: [7, 15],
+    rangePerNode: [7, 20],
     sharedRange: [1, 3],
-    sharedPercent: 0.3,
+    sharedPercent: 0.4,
   },
 };
 
